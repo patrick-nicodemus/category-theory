@@ -126,8 +126,13 @@ Class WellPointed `{@Pointed C F} := {
     (F ⊳ point) ∙ from (nat_λ _) ≈ (point ⊲ F) ∙ from (nat_ρ _)
 }.
 
+Definition pointwise_nat_iso (C D : Category) (F G: C ⟶ D) :=
+  { iso : ∀ x : C, F x ≅ G x
+    & ∀ (x y : C) (f : x ~> y),
+        fmap[F] f ≈ from (iso y) ∘ fmap[G] f ∘ to (iso x) }.
+
 Theorem Functor_Setoid_Nat_Iso `(F : C ⟶ D) (G : C ⟶ D) :
-  F ≅[Fun] G  ↔  F ≈ G.
+  F ≅[Fun] G  ↔  pointwise_nat_iso _ _ F G.
 Proof.
   split; intros; simpl.
   - given (iso : ∀ x : C, F x ≅ G x). {
@@ -173,8 +178,12 @@ Proof.
          apply iso_from_to).
 Defined.
 
-Definition iso_equiv {C D : Category} {f g : C ⟶ D} :
-  f ≅[Fun] g → f ≈ g := fst (Functor_Setoid_Nat_Iso _ _).
+(* Definition iso_equiv {C D : Category} {f g : C ⟶ D} :  *)
+(*   f ≅[Fun] g → f ≈ g := fst (Functor_Setoid_Nat_Iso _ _). *)
+Definition pointwise_nat_iso_to_nat_iso {C D : Category} {f g : C ⟶ D} :
+  f ≅[Fun] g → pointwise_nat_iso _ _ f g := fst (Functor_Setoid_Nat_Iso _ _).
 
-Definition equiv_iso {C D : Category} {f g : C ⟶ D} :
-  f ≈ g → f ≅[Fun] g := snd (Functor_Setoid_Nat_Iso _ _).
+(* Definition equiv_iso {C D : Category} {f g : C ⟶ D} : *)
+(*   f ≈ g → f ≅[Fun] g := snd (Functor_Setoid_Nat_Iso _ _). *)
+Definition nat_iso_to_pointwise_nat_iso {C D : Category} {f g : C ⟶ D} :
+  pointwise_nat_iso _ _ f g → f ≅[Fun] g := snd (Functor_Setoid_Nat_Iso _ _).

@@ -11,36 +11,9 @@ Require Import Category.Instance.Sets.
 
 Generalizable All Variables.
 
-(** Let C be a category, let x, y : Obj(C), and let x -> [f0 ; f1 ; f2 ... fn] -> y and 
-   x -> [g0 ; g1 ; ... ; gm] -> y be two chains of composable paths in C. 
-   When are these paths equivalent?
-
-   There are two answers that seem reasonable to me: 
-   1. n = m; cod f0 = cod g0; cod f1 = cod g1, ..., dom fn = dom gn, and f0 = g0, f1 = g1, ...
-   2. n = m, and there is a system of isomorphisms cod f0 ≅ cod g0, cod f1 ≅ cod g1,... 
-   dom fn = dom gn, such that everything in sight commutes. *)
-
-(** The first answer is simpler but is also categorically "evil" in the sense that one
-   must compare objects up to equality.  The second answer seems more compatible with the
-   general paradigm that isomorphic objects in a category should be identified.*)
-
-(** In (1.) and (2.) different amounts of structure on the objects and arrows are
-   necessary to define these notions.
-   In (1.), one only needs the type of objects and the
-   type of arrows, where the arrow types are perhaps setoids, in other words a directed
-   graph or quiver. *)
-
-(** In (2.), one needs in addition a distinguished notion of an isomorphism between
-   objects, so that one can talk about transporting the arrows along the isomorphism.
-   Thus the structure required in order for the equivalence in (2.) to make sense is that
-   we have a groupoid A and a functor A^op x A -> Sets.  One could call this structure an
-   "endoprofunctor on a groupoid."  I will call it a "groupoid quiver."  One can regard a
-   groupoid as simply a well-behaved setoid, i.e. it is a setoid with additional properties.
-*)
-
 Section Quiver.
   Class Quiver@{o h p} := {
-      nodes :> Type@{o};
+      nodes : Type@{o};
       uedges := Type@{h} : Type@{h+1};
       edges : nodes → nodes → uedges;
       edgeset : ∀ X Y, Setoid@{h p} (edges X Y)
@@ -48,15 +21,11 @@ Section Quiver.
   Coercion nodes : Quiver >-> Sortclass.
   Context (G : Quiver).
   Existing Instance edgeset.
-  Check tlist'.
 
   Fixpoint tlist'_quiver_equiv (k i j : G) 
     (f : @tlist' _ edges k i) (g : @tlist' _ edges k j) ( p : i = j ) : Type :=
     match f in (tlist' _ i_t) return (tlist' _ j) -> i_t = j -> Type with
-    | tnil => fun g' _ => match g' with
-                          | tnil => True
-                          | _ => False
-                          end
+    | tnil => fun g' q => tnil = Logic.transport_r (fun z => @tlist' _ edges k z) q g'
     | @tcons _ _ _ i0 i1 fhead ftail =>
         fun g' : tlist' _ j  => 
           match g' in tlist' _ j return @tlist' _ edges k i1 -> i0 = j -> Type with
@@ -69,6 +38,48 @@ Section Quiver.
                       tlist'_quiver_equiv k i1 j1 ftail' gtail q }
           end ftail
     end g p.
+
+  Inductive tlist'_quiver_inductive (i : G) :
+    forall (j : G), (@tlist' _ edges i j) -> (@tlist' _ edges i j) -> Type :=
+  | tlist_both_empty : tlist'_quiver_inductive i tnil tnil
+  | tlist_both_cons (k : G) :
+    forall (j : G) (ftail gtail : @tlist' _ edges i j) (fhead ghead : edges k j),
+           (tlist'_quiver_inductive j ftail gtail) ->
+           fhead ≈ ghead ->
+           tlist'_quiver_inductive k (tcons _ fhead ftail)
+                                   (tcons _ ghead gtail).
+
+  Proposition fixpoint_implies_inductive (i j : G) (f g : tlist edges i j) :
+    tlist'_quiver_equiv _ _ _ f g eq_refl -> (tlist'_quiver_inductive _ _ f g).
+  Proof.
+    revert g; induction f.
+    - intros g H. simpl in H; unfold Logic.transport_r in H; simpl in H; destruct H.
+      constructor.
+    - intro g; destruct g; [ now apply False_rect |].
+      intro H. simpl in H; destruct H as [q t t0].
+      destruct q.
+      constructor.
+      + apply IHf. assumption.
+      + unfold Logic.transport_r in t. simpl in t. exact t.
+  Defined.
+
+  Proposition inductive_implies_fixpoint (i j : G) (f g : tlist edges i j) :
+    (tlist'_quiver_inductive _ _ f g) -> tlist'_quiver_equiv _ _ _ f g eq_refl.
+  Proof.
+    intro H.
+    induction H; [ now simpl | simpl ].
+    exists eq_refl; assumption.
+  Defined.
+  
+  Lemma tlist'_equiv_lengths (i j k : G) (f : tlist' k i) (g : tlist' k j) (p : i = j) :
+    tlist'_quiver_equiv _ _ _ f g p -> tlist_length f = tlist_length g.
+    revert j g p; induction f.
+    - intros j g p H. destruct g; [ reflexivity | ].
+      simpl in H. destruct p. unfold Logic.transport_r in H; simpl in H;
+        now inversion H.
+    - intros j' g p; destruct g; [ now apply False_rect | simpl ].
+      intros [j_eq_j0 X]; apply eq_S; unshelve eapply IHf; [ exact j_eq_j0 | assumption ].
+  Defined.
   
   Proposition tlist'_quiver_equiv_reflexive (k i: G) :
     forall f : tlist edges i k, tlist'_quiver_equiv k i i f f eq_refl.
@@ -77,7 +88,9 @@ Section Quiver.
     unshelve econstructor; easy.
   Defined.
 
-  Proposition tlist_quiver_equiv'_transitive (k i1 i2 i3: G) :
+  Arguments Logic.transport_r /.
+
+  Proposition tlist'_quiver_equiv_transitive (k i1 i2 i3: G) :
       forall (f : tlist edges i1 k) (g : tlist edges i2 k) (h : tlist edges i3 k)
              (p : i1 = i2) (q : i2 = i3),
         tlist'_quiver_equiv k i1 i2 f g p ->
@@ -86,7 +99,11 @@ Section Quiver.
   Proof.
     intro f; revert i2 i3.
     induction f as [ | i0 i1 fhead ftail ]; 
-      [ intros; destruct g; [ easy | now apply False_rect ] |].
+      [ intros i2 i3 g h p q equiv1 equiv2;
+        destruct p, q;
+        simpl in *; destruct equiv1; now simpl in equiv2 |].
+ 
+      (* [ intros; destruct g; [ easy | now apply False_rect ] |]. *)
     intros i2 i3 g h p q equiv1 equiv2.
     destruct g as [ | j0 j1 ghead gtail ]; [ now apply False_rect |]. 
     simpl in equiv1. destruct equiv1 as [j_eq_j0 fhead_eq_ghead].
@@ -98,95 +115,54 @@ Section Quiver.
       simpl Logic.transport in *. now apply (@Equivalence_Transitive _ _ _ _ ghead).
     - unshelve eapply IHftail; [ exact gtail | assumption | assumption ].
   Defined.
-  
+
+  Proposition tlist'_quiver_equiv_symmetric (k i j: G) (p : i = j) : 
+    forall (f : tlist edges i k) (g: tlist edges j k),
+      tlist'_quiver_equiv k i j f g p -> tlist'_quiver_equiv k j i g f (eq_sym p).
+  Proof.
+    intro f; revert j p; induction f as [| i0 i1 fhead ftail];
+      intros j p g; destruct g as [|j0 j1 ghead gtail].
+    - unfold tlist'_quiver_equiv. intro H.
+      rewrite H at 2. unfold Logic.transport_r. simpl.
+      clear H. destruct p. reflexivity.
+    - intro H; simpl in H. apply False_rect. destruct p; simpl in H.
+      inversion H.
+    - now apply False_rect.
+    - simpl. intros [q e t].
+      exists (eq_sym q).
+      + simpl. apply Equivalence_Symmetric. destruct p, q. simpl in *.
+        assumption.
+      + now apply IHftail, t.
+  Defined.
+
+  Definition tlist_quiver_equiv (i k : G) : crelation (tlist edges i k) :=
+    fun f g => tlist'_quiver_equiv _ _ _ f g eq_refl.
+
+#[export]
+  Instance tlist_quiver_equiv_is_equiv (i k : G) : Equivalence (tlist_quiver_equiv i k).
+  Proof.
+    unshelve eapply Build_Equivalence.
+    + intro; apply tlist'_quiver_equiv_reflexive.
+    + intros f g H;
+      unfold tlist_quiver_equiv; change (@eq_refl _ i) with (eq_sym (@eq_refl _ i));
+      apply tlist'_quiver_equiv_symmetric; exact H.
+    + intros f g h equiv1 equiv2. unfold tlist_quiver_equiv.
+      change (@eq_refl _ i) with (eq_trans (@eq_refl _ i) (@eq_refl _ i)).
+      unshelve eapply tlist'_quiver_equiv_transitive; [ exact g | |]; assumption.
+  Defined.
 End Quiver.
 
-Section GroupoidQuiver.
-  (* Coercion catOfGroupoid : Groupoid >-> Category. *)
-  (* Class GroupoidQuiver (C : Groupoid) := { gq_edges : @Functor (C^op ∏ C) Sets }. *)
-  (* Existing Instance all_are_iso. *)
-  (* Context (C : Groupoid). *)
-  (* Context (GC : GroupoidQuiver C). *)
-  (* Let gq_edges' := fun i j : C => gq_edges (i,j). *)
-  (* (*     transport_head {X Y Z} : X ≈ Z -> edges X Y -> edges Z Y; *) *)
-  (* Let transport_head {X Y Z} : X ≈ Z -> gq_edges' X Y -> gq_edges' Z Y. *)
-  (* Proof. *)
-  (*   intros f; simpl; unfold gq_edges'; intro g.  *)
-  (*   unshelve eapply (fmap[gq_edges]). *)
-  (*   { apply (X,Y). } *)
-  (*   { split; simpl; [apply (@two_sided_inverse _ _ _ f _) | apply id]. } *)
-  (*   exact g. *)
-  (* Defined. *)
-      
-(* Class GroupoidQuiver (G : Groupoid) := { edges : @Functor (G^op ∏ G) Sets }. *)
-
 Definition Build_Quiver_Standard_Eq ( node_type : Type )
-  ( edge_type : node_type -> node_type -> Sets ) : Quiver (path_groupoid node_type).
-Proof.
-  unshelve eapply Build_Quiver.
-  unshelve eapply Build_Functor.
-  { intro xy; destruct xy as [x y]; exact (edge_type x y). }
-  { intros [x1 x2] [y1 y2]; simpl in *. intros [eq1 eq2]; destruct eq1, eq2.
-    unshelve econstructor; [ exact (fun x => x) | easy]. }
-  { intros [x1 x2] [y1 y2] [eq1 eq2]; simpl in *; destruct eq1, eq2.
-    intros [? ?]; simpl; intros [eq1 eq2]; simpl.
-    rewrite <- eq1, <- eq2. intro x; reflexivity. }
-  { intros [x1 x2]. simpl in *. reflexivity. }
-  { intros [x1 x2] [y1 y2] [z1 z2] [eq1 eq2] [eq3 eq4] f. simpl in *.
-    destruct eq1, eq2, eq3, eq4; reflexivity. }
-Defined.
-
-(* {| *)
-  (*   nodes := node_type ; *)
-  (*   nodeset := {| equiv := eq ; setoid_equiv := eq_equivalence |}; *)
-  (*   edges := edge_type; *)
-  (*   edgeset := fun _ _ => {| equiv := eq; setoid_equiv := eq_equivalence |}                        *)
-  (* |}. *)
-Print Build_Quiver_Standard_Eq.
-
-(* Class Quiver@{o h p} : Type@{max(o+1,h+1,p+1)} := { 
-(*     nodes : Type@{o}; *)
-(*     nodeset : Setoid@{o p} nodes; *)
-(*     uedges := Type@{h} : Type@{h+1}; *)
-(*     edges : nodes → nodes → uedges; *)
-(*     edgeset : ∀ X Y, Setoid@{h p} (edges X Y); *)
-(*     transport_head {X Y Z} : X ≈ Z -> edges X Y -> edges Z Y; *)
-(*     transport_tail {X Y Z} : Y ≈ Z -> edges X Y -> edges X Z; *)
-(*     transport_head_respects_equiv : *)
-(*     ∀ Y : nodes, equiv_transport nodes nodeset (fun X => edges X Y) _ *)
-(*                    (fun X => @transport_head X Y); *)
-(*     transport_tail_respects_equiv : *)
-(*     ∀ X : nodes, equiv_transport nodes nodeset (edges X) _ *)
-(*                    (@transport_tail X); *)
-(*     transport_coherent : *)
-(*     ∀ X1 Y1 X2 Y2, ∀ f : edges X1 Y1, *)
-(*     ∀ equivX : X1 ≈ X2, ∀ equivY : Y1 ≈ Y2, *)
-(*       transport_tail equivY (transport_head equivX f) ≈ *)
-(*         transport_head equivX (transport_tail equivY f) *)
-(*   }. *)
-
-Local Existing Instance nodeset.
-Local Existing Instance edgeset.
-(* A constructor for quivers when equality is the standard equality everywhere.  *)
-  
-Program Definition Build_Quiver_Standard_Eq ( node_type : Type )
   ( edge_type : node_type -> node_type -> Type ) : Quiver :=
   {|
     nodes := node_type ;
-    nodeset := {| equiv := eq ; setoid_equiv := eq_equivalence |};
     edges := edge_type;
     edgeset := fun _ _ => {| equiv := eq; setoid_equiv := eq_equivalence |}                       
   |}.
-Print Build_Quiver_Standard_Eq.
-
-Coercion nodes : Quiver >-> Sortclass.
 
 Class QuiverHomomorphism@{o1 h1 p1 o2 h2 p2}
   (G : Quiver@{o1 h1 p1}) (G' : Quiver@{o2 h2 p2}) := {
     fnodes : @nodes G -> @nodes G';
-    nodemap_respects :
-    Proper@{o1 o2} (respectful@{o1 _ _ o2 _ _ } (@equiv@{o1 o1} _ (nodeset))
-                           (@equiv@{o2 o2} _ (nodeset))) fnodes;
     fedgemap : ∀ x y : @nodes G, edges x y -> edges (fnodes x) (fnodes y);
     fedgemap_respects : ∀ x y,
     Proper@{h2 p2} (respectful@{h1 p1 h2 p2 h2 p2}
@@ -194,84 +170,135 @@ Class QuiverHomomorphism@{o1 h1 p1 o2 h2 p2}
                       (@equiv@{h2 p2} _ (edgeset _ _))) (@fedgemap x y)
   }.
 
+Coercion fnodes : QuiverHomomorphism >-> Funclass.
+Local Existing Instance edgeset.
+Definition QuiverHomomorphismEquivalence
+  (Q : Quiver) (Q' : Quiver) (F G : QuiverHomomorphism Q Q') : Type :=
+  { node_equiv : forall x : Q, (@fnodes _ _ F x) = (@fnodes _ _ G x)
+        & forall (x y : Q) (f : edges x y),
+          let eqx := node_equiv x in
+          let eqy := node_equiv y in
+          let Ff := @fedgemap _ _ F x y f in
+          let Gf := @fedgemap _ _ G x y f in
+          (Logic.transport (fun t => edges (F x) t) eqy Ff ≈
+             Logic.transport_r (fun t => edges t (G y)) eqx Gf) }.
+
+Proposition QuiverHomomorphismEquivalence_Reflexive (Q Q' : Quiver)
+  : Reflexive (QuiverHomomorphismEquivalence Q Q').
+Proof.
+  intro F. unfold QuiverHomomorphismEquivalence.
+  exists (fun _ => eq_refl). reflexivity.
+Defined.
+
+Proposition QuiverHomomorphismEquivalence_Transitive (Q Q' : Quiver)
+  : Transitive (QuiverHomomorphismEquivalence Q Q').
+Proof.
+Abort.
+
 Section Free.
   Universes o h p.
   Context (G : Quiver@{o h p}).
-  Check (@equiv _ nodeset).
 
-    (*   transport_head {X Y Z} : X ≈ Z -> edges X Y -> edges Z Y; *)
-    (* transport_tail {X Y Z} : Y ≈ Z -> edges X Y -> edges X Z; *)
-
-  Inductive tlist_quiver_equiv' (k : G) : forall i j : G,
-      i ≈ j -> (tlist edges i k) -> (tlist edges j k) -> Type :=
-  | tlist_equiv_nil : tlist_quiver_equiv' k k
-                        (Equivalence_Reflexive k) tnil tnil
-  | tlist_equiv_cons :
-    forall (i i' j j' : G) (p : i ≈ j) (q : i' ≈ j')
-           (fhead : edges i i') (ftail : tlist edges i' k)
-           (ghead : edges j j') (gtail : tlist edges j' k),
-      transport_head p (transport_tail q fhead) ≈ ghead ->
-      (tlist_quiver_equiv' i' j' q ftail gtail) ->
-      tlist_quiver_equiv' i j p (tcons _ fhead ftail) (tcons _ ghead gtail).
-
-  Definition tlist_quiver_equiv (i k : G) :=
-    tlist_quiver_equiv' k i i (Equivalence_Reflexive i).
-
-  Proposition tlist_quiver_equiv'_reflexive (i j k : G)
-    (p : i ≈ j) (f : tlist edges i k) (g : tlist edges j k) :
-    (tlist_quiver_equiv' k) i j p f g ->
-    (tlist_quiver_equiv' k) j i (Equivalence_Symmetric _ _ p) g f.
-  Proof.
-    intro H. induction H.
-    {
-      
-      unshelve eapply (@tlist_equiv_nil k).
-        
-  
-  Program Definition FreeOnQuiver@{fo fh fp} : Category@{fo fh fp} :=
+  Arguments Logic.transport_r /.
+  Program Definition FreeOnQuiver : Category@{o h p} :=
     {|
       obj     := @nodes G;
       hom     := tlist edges;
-      homset  := fun i j => {| equiv := tlist_quiver_equiv  |};
+      homset  := fun i j => {| equiv := tlist_quiver_equiv _ _ _  ;
+                              setoid_equiv := tlist_quiver_equiv_is_equiv _ _ _ |};
       id      := fun _ => tnil;
       compose := fun _ _ _ f g => g +++ f
 |}.
-  
-Next Obligation. equivalence; congruence. Qed.
-Next Obligation. now apply tlist_app_tnil_r. Qed.
-Next Obligation. now apply tlist_app_assoc. Qed.  
-Next Obligation. symmetry; now apply tlist_app_assoc. Qed.  
+Next Obligation.
+  revert z x0 y0 X y1 X0.
+  induction x1.
+  - intros z f g f_eq_g ghead H.
+    unfold tlist_quiver_equiv in H.
+    unfold tlist'_quiver_equiv in H. simpl in H. destruct H.
+    destruct (eq_sym (tlist_app_tnil_l f)).
+    destruct (eq_sym (tlist_app_tnil_l g)).
+    assumption.
+  - intros z f g f_eq_g ghead H.
+    destruct (tlist_app_comm_cons b x1 f).
+    unfold tlist_quiver_equiv.
+    destruct ghead as [| i k e ghead]; [ now apply False_rect| ].
+    destruct (tlist_app_comm_cons e ghead g).
+    simpl tlist'_quiver_equiv. unfold tlist_quiver_equiv in H.
+    simpl in H. destruct H as [q tr t]; exists q; [ exact tr |].
+    unfold tlist_quiver_equiv in IHx1. destruct q.
+    apply IHx1; [ exact f_eq_g | exact t ].
+  Defined. 
+  Next Obligation. rewrite tlist_app_tnil_r. apply Equivalence_Reflexive. Qed.
+  Next Obligation. rewrite tlist_app_tnil_l. apply Equivalence_Reflexive. Qed.
+  Next Obligation. rewrite tlist_app_assoc. apply Equivalence_Reflexive.  Qed.
+  Next Obligation. rewrite tlist_app_assoc. apply Equivalence_Reflexive.  Qed.
 End Free.
 
 Section Underlying.
   Universes o h p.
   Context (C : Category@{o h p}).
-  Program Definition QuiverOfCat@{fo fh} : Quiver@{fo fh} := {|
-  nodes     := obj;
-  edges     := hom
-                                                            |}.
+  
+  Program Definition QuiverOfCat : Quiver@{o h p} :=
+    {|
+      nodes     := obj;
+      edges     := hom
+    |}.
 End Underlying.
 
+Arguments Logic.transport_r /.
 Definition InducedFunctor {G : Quiver} {C : Category} 
   (F : QuiverHomomorphism G (QuiverOfCat C)) :   @Functor (FreeOnQuiver G) C.
 Proof.
-  unshelve eapply Build_Functor.
+  unshelve eapply Build_Functor. 
   { change obj[C] with (@nodes (QuiverOfCat C)). exact fnodes. }
-  { intros x y; simpl; intro f; induction f as [nil | i j k f g IHg];
-      [ exact id | refine (compose IHg _); exact (fedges i j f)]. }
-  { cat_simpl. }
+  { intros c c'; simpl; intro f; unfold tlist in f.
+    induction f as [| c c_mid fhead ftail IHftail] ; [ exact id | ].
+    refine (compose IHftail _).
+    change _ with (@edges (QuiverOfCat C) (fnodes c) (fnodes c_mid)).
+    exact (fedgemap c c_mid fhead). }
+  { intros c1 c2; simpl; intro f; induction f as [| c1 c_mid fhead ftail IHf].
+    - intros a H; simpl in H; unfold tlist_quiver_equiv, tlist'_quiver_equiv in H. 
+      simpl in H; destruct H; reflexivity.
+    - intros g H. unfold tlist_quiver_equiv in H.
+      destruct g; [ now apply False_rect |].
+      simpl in H. destruct H as [q t t0]. simpl.
+      set (zm := tlist'_rect G edges c2 _ _ _) in *; clearbody zm.
+      destruct q.
+      refine (@compose_respects C
+               (@fnodes _ _ F i)
+               (@fnodes _ _ F c_mid)
+               (@fnodes _ _ F c2)
+               (zm c_mid ftail)
+               (zm c_mid g)
+               _
+               ((@fedgemap _ _ F) i c_mid fhead)
+               ((@fedgemap _ _ F) i c_mid e)
+               _   ).
+      + apply IHf. assumption.
+      + apply (@fedgemap_respects _ _ F). exact t.
+  }
   { reflexivity. }
-  { intros ? ? ? ? g; simpl; induction g;
-      [ now cat | rewrite <- tlist_app_comm_cons; simpl;
-                  rewrite comp_assoc, <- IHg; reflexivity ]. }
+  { intros c1 c2 c3 f g. simpl.
+    induction g.
+    + simpl. destruct (eq_sym (tlist_app_tnil_l f)).
+      apply Equivalence_Symmetric, id_right.
+    + destruct (tlist_app_comm_cons b g f); simpl.
+      set (zm := tlist'_rect _ _ _ _ _ _) in *.
+      rewrite comp_assoc; set (k := fedgemap _ _ _).
+      change (edges _ _ ) with (@hom _ ((@fnodes _ _ F) i) ((@fnodes _ _ F) j)) in k.
+      refine  (compose_respects _ _ _ k k _); [ apply IHg | reflexivity]. }
 Defined.
+
 
 Definition UnitQuiverCatAdjunction (Q : Quiver) :
   QuiverHomomorphism Q (QuiverOfCat (FreeOnQuiver Q)).
 Proof.
   unshelve eapply Build_QuiverHomomorphism.
   { exact Datatypes.id. }
-  { exact (fun x y f => @tcons _ _ x y y f (tnil)). }
+  { exact (fun x y f => tlist_singleton f). }
+  { intros x y p q; unfold tlist_singleton;
+    simpl; unfold tlist_quiver_equiv, tlist'_quiver_equiv;
+    intros ?; exists eq_refl; [assumption | reflexivity]. }
 Defined.
                                  
 Section FreeQuiverSyntax.
