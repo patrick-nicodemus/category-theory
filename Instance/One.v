@@ -37,8 +37,6 @@ Program Instance Cat_Terminal : @Terminal Cat := {
   one := Erase
 }.
 Next Obligation.
-  unshelve esplit.
-  - intro. destruct (fobj[f] x0), (fobj[g] x0); reflexivity.
-  - intros. simpl. destruct (fobj[f] y), (fobj[g] y), (fobj[f] x0), (fobj[g] x0).
-    unfold Logic.transport_r; simpl. destruct (fmap[f] f0), (fmap[g] f0); reflexivity.
+  constructive; auto; try exact ttt.
+  destruct (fmap[f] f0); auto.
 Qed.

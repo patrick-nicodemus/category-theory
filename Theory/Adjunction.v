@@ -3,7 +3,6 @@ Require Import Category.Theory.Category.
 Require Import Category.Theory.Morphisms.
 Require Import Category.Theory.Isomorphism.
 Require Import Category.Theory.Functor.
-Require Import Category.Instance.Fun.
 Require Import Category.Instance.Sets.
 
 Generalizable All Variables.
@@ -233,7 +232,7 @@ Notation "adj[ A ]" := (@adj _ _ _ _ A _ _)
    G and G' are naturally isomorphic. The same is true for left adjoints." *)
 
 Theorem right_adjoint_iso `(F : C ⟶ D) (G G' : D ⟶ C) :
-  F ⊣ G → F ⊣ G' → pointwise_nat_iso _ _ G G'. 
+  F ⊣ G → F ⊣ G' → G ≈ G'.
 Proof.
   intros.
   construct.
@@ -273,7 +272,7 @@ Proof.
 Qed.
 
 Theorem left_adjoint_iso `(G : D ⟶ C) (F F' : C ⟶ D) :
-  F ⊣ G → F' ⊣ G → pointwise_nat_iso _ _ F F'.
+  F ⊣ G → F' ⊣ G → F ≈ F'.
 Proof.
   intros.
   construct.
@@ -324,4 +323,3 @@ Qed.
    - product of the images; applying a left adjoint functor to a coproduct of
    - objects yields the coproduct of the images; every right adjoint functor
    - is left exact; every left adjoint functor is right exact." *)
-

@@ -1,7 +1,6 @@
 Require Import Category.Lib.
 Require Import Category.Theory.Category.
 Require Import Category.Theory.Isomorphism.
-Require Import Equations.Prop.Logic.
 
 Generalizable All Variables.
 
@@ -63,143 +62,84 @@ Notation "fmap[ F ]" := (@fmap _ _ F%functor _ _)
 
 #[export] Hint Rewrite @fmap_id : categories.
 
-(* #[export] *)
-(* Program Instance Functor_Setoid {C D : Category} : Setoid (C ⟶ D) := { *)
-(*   (* Note that it doesn't make much sense (with our definition of [Category]) *)
-(*      to ask that [∀ x : C, F x = G x] and *)
-(*      [∀ (x y :C) (f : x ~> y), fmap[F] f ≈ fmap[G] f] because the second *)
-(*      condition is hard to work with in the type-system since it needs lots of *)
-(*      equality proofs. *) *)
-(*   equiv := fun F G => *)
-(*     (* Equality of objects in a category is taken to be a natural *)
-(*        isomorphism *) *)
-(*     { iso : ∀ x : C, F x ≅ G x *)
-(*     & ∀ (x y : C) (f : x ~> y), *)
-(*         fmap[F] f ≈ from (iso y) ∘ fmap[G] f ∘ to (iso x) } *)
-(* }. *)
-
-Lemma transport_adjunction (A : Type) (B : A -> Type) (R: forall a :A, crelation (B a)) :
-  forall (a a' : A) (p : a = a') (x : B a) (y : B a'),
-    ((R _ x (transport_r B p y) -> R _ (transport B p x) y)) *
-      (R _ (transport B p x) y -> (R _ x (transport_r B p y))).
-  intros a a' p x y. split.
-  - destruct p. now unfold transport_r.
-  - destruct p. now unfold transport_r.
-Defined.
-
-Lemma transport_relation_exchange (A : Type) (R : crelation A) :
-  forall (a a' b b': A) (p : a = b) (q : a' = b') (t : R a a'),
-    transport (fun z => R b z) q
-      (transport (fun k => R k a') p t) =
-      transport (fun k => R k b') p
-        (transport (fun z => R a z) q t).
-Proof.
-  intros a a' b b' p q t; destruct p, q; reflexivity.
-Defined.
-
-Lemma transport_trans (A : Type) (B : A -> Type) :
-  forall (a0 a1 a2 : A) (x : B a0) (p : a0 = a1) (q : a1 = a2),
-    transport B q (transport B p x) = transport B (eq_trans p q) x.
-Proof.
-  intros a0 a1 a2 x p q; destruct p, q; reflexivity.
-Defined.
-
-Global Instance proper_transport (A : Type) (B : A -> Type) (S : forall a : A, Setoid (B a)) :
-  forall (a a' : A) (p : a = a'), Proper (equiv ==> equiv) (transport B p).
-Proof.
-  intros a b p. destruct p. now unfold transport.
-Defined.
-
-Global Instance proper_transport_r (A : Type) (B : A -> Type) (S : forall a : A, Setoid (B a)) :
-  forall (a a' : A) (p : a = a'), Proper (equiv ==> equiv) (transport_r B p).
-Proof.
-  intros a b p. destruct p. now (unfold transport_r).
-Defined.
-
-Global Instance proper_transport_hom_cod (C : Category) (c d d': C) (p : d = d') 
-  : Proper (equiv ==> equiv) (transport (fun z => hom c z) p).
-Proof.
-  destruct p. now trivial.
-Defined.
-
-Global Instance proper_transport_hom_dom (C : Category) (c c' d: C) (p : c = c') 
-  : Proper (equiv ==> equiv) (transport (fun z => hom z d) p).
-Proof.
-  destruct p. now trivial.
-Defined.
-
-(* Goal forall (C : Category) (c c' d : C) (p : c = c') (f g : hom c d), *)
-(*     f ≈ g -> transport (fun z => hom z d) p f ≈ transport (fun z => hom z d) p g. *)
-(* Proof. *)
-(*   intros C c c' d p f g f_eq_g . *)
-(*   assert (Z := (proper_transport_hom_dom C c c' d p)). *)
-(*   Print Instances Proper. *)
-(*   rewrite -> f_eq_g. *)
-
+#[export]
 Program Instance Functor_Setoid {C D : Category} : Setoid (C ⟶ D) := {
-    equiv := fun F G =>
-    { eq_on_obj : ∀ x : C, F x = G x
+  (* Note that it doesn't make much sense (with our definition of [Category])
+     to ask that [∀ x : C, F x = G x] and
+     [∀ (x y :C) (f : x ~> y), fmap[F] f ≈ fmap[G] f] because the second
+     condition is hard to work with in the type-system since it needs lots of
+     equality proofs. *)
+  equiv := fun F G =>
+    (* Equality of objects in a category is taken to be a natural
+       isomorphism *)
+    { iso : ∀ x : C, F x ≅ G x
     & ∀ (x y : C) (f : x ~> y),
-          fmap[F] f ≈ transport_r (fun z => hom (fobj[ F ] x) z) (eq_on_obj y)
-            (transport_r (fun z => hom z (fobj[G] y)) (eq_on_obj x) (fmap[G] f)) }
-    }.
+        fmap[F] f ≈ from (iso y) ∘ fmap[G] f ∘ to (iso x) }
+}.
 Next Obligation.
   equivalence.
-  - unfold transport_r. rewrite 2! eq_sym_involutive.
-    rename x into F, y into G, x0 into eq_ob, x1 into x, y0 into y.
-    unshelve refine
-      (fst (transport_adjunction D (hom (fobj[G] x)) (fun d s t => t ≈ s)
-              _ _ _ _ _) _).
-    unshelve refine
-      (fst (transport_adjunction D (λ z : obj[D], z ~{ D }~> fobj[F] y)
-              (fun d s t => t ≈ s)
-              _ _ _ _ _) _).
-    unfold transport_r in *.
-    rewrite <- transport_relation_exchange.
-    symmetry. apply e.
-  - exact(eq_trans (x1 x2) (x0 x2)).
-  - rename x into F, y into G, z into H, x1 into F_eq_ob_G,
-      e0 into F_eq_ob_G_resp_mor, x0 into G_eq_ob_H,
-      e into G_eq_ob_H_resp_mor, x2 into domf, y0 into codf.
-    unfold transport_r in *.
-    rewrite 2! eq_trans_sym_distr.
-    rewrite <- 2! transport_trans.
-    rewrite transport_relation_exchange.
-    rewrite <- (G_eq_ob_H_resp_mor domf codf f).
-    apply (F_eq_ob_G_resp_mor _ _ _).
+  - isomorphism.
+    + exact (from (x0 x1)).
+    + exact (to (x0 x1)).
+    + apply iso_from_to.
+    + apply iso_to_from.
+  - simpl.
+    rewrite e.
+    rewrite !comp_assoc.
+    rewrite iso_to_from, id_left.
+    rewrite <- comp_assoc.
+    rewrite iso_to_from, id_right.
+    reflexivity.
+  - isomorphism.
+    + apply (to (x0 x2) ∘ to (x1 x2)).
+    + apply (from (x1 x2) ∘ from (x0 x2)).
+    + rewrite <- !comp_assoc.
+      rewrite (comp_assoc (x1 x2)).
+      rewrite iso_to_from, id_left.
+      apply iso_to_from.
+    + rewrite <- !comp_assoc.
+      rewrite (comp_assoc (x0 x2)⁻¹).
+      rewrite iso_from_to, id_left.
+      apply iso_from_to.
+  - simpl.
+    rewrite !comp_assoc.
+    rewrite <- (comp_assoc _ (x0 y0)⁻¹).
+    rewrite <- (comp_assoc _ ((x0 y0)⁻¹ ∘ _)).
+    rewrite <- e.
+    apply e0.
 Qed.
 
-(* Lemma fun_equiv_to_fmap {C D : Category} {F G : C ⟶ D} (eqv : F ≅ G) : *)
-(*   ∀ (x y : C) (f : x ~> y), *)
-(*     to (``eqv y) ∘ fmap[F] f ≈ fmap[G] f ∘ to (``eqv x). *)
-(* Proof. *)
-(*   intros. *)
-(*   rewrite <- id_right. *)
-(*   rewrite ((`2 eqv) _ _). *)
-(*   rewrite !comp_assoc. *)
-(*   rewrite iso_to_from. *)
-(*   now cat. *)
-(* Qed. *)
+Lemma fun_equiv_to_fmap {C D : Category} {F G : C ⟶ D} (eqv : F ≈ G) :
+  ∀ (x y : C) (f : x ~> y),
+    to (``eqv y) ∘ fmap[F] f ≈ fmap[G] f ∘ to (``eqv x).
+Proof.
+  intros.
+  rewrite <- id_right.
+  rewrite ((`2 eqv) _ _).
+  rewrite !comp_assoc.
+  rewrite iso_to_from.
+  now cat.
+Qed.
 
-(* Lemma fun_equiv_fmap_from {C D : Category} {F G : C ⟶ D} (eqv : F ≈ G) : *)
-(*   ∀ (x y : C) (f : x ~> y), *)
-(*     fmap[F] f ∘ from (``eqv x) ≈ from (``eqv y) ∘ fmap[G] f. *)
-(* Proof. *)
-(*   intros. *)
-(*   rewrite <- id_left. *)
-(*   rewrite ((`2 eqv) _ _). *)
-(*   rewrite <- !comp_assoc. *)
-(*   rewrite iso_to_from. *)
-(*   now cat. *)
-(* Qed. *)
+Lemma fun_equiv_fmap_from {C D : Category} {F G : C ⟶ D} (eqv : F ≈ G) :
+  ∀ (x y : C) (f : x ~> y),
+    fmap[F] f ∘ from (``eqv x) ≈ from (``eqv y) ∘ fmap[G] f.
+Proof.
+  intros.
+  rewrite <- id_left.
+  rewrite ((`2 eqv) _ _).
+  rewrite <- !comp_assoc.
+  rewrite iso_to_from.
+  now cat.
+Qed.
 
-(* Ltac constructive := *)
-(*   simpl; *)
-(*   match goal with *)
-(*     [ |- { iso : ?I & ?F } ] => *)
-(*     given (iso : I); [ intros; isomorphism; simpl; intros *)
-(*                      | exists iso; intros ] *)
-(*   end. *)
+Ltac constructive :=
+  simpl;
+  match goal with
+    [ |- { iso : ?I & ?F } ] =>
+    given (iso : I); [ intros; isomorphism; simpl; intros
+                     | exists iso; intros ]
+  end.
 
 #[export]
 Program Instance fobj_iso `(F : C ⟶ D) :
@@ -242,48 +182,34 @@ Next Obligation. intros; rewrite !fmap_comp; reflexivity. Qed.
 Notation "F ◯ G" := (Compose F%functor G%functor)
   (at level 40, left associativity) : category_scope.
 
-Lemma transport_f_equal (A B : Type) (C : B -> Type) (f : A -> B)
-  (x y : A) (p : x = y) (t : C (f x))
-  : transport (fun a => C (f a)) p t = transport (fun b => C b) (f_equal f p) t.
-Proof.
-  destruct p. reflexivity.
-Defined.
-
-Lemma transport_functorial_dom (C D: Category) (F : @Functor C D) (c c' d : C)
-  (p : c = c') (f : hom c d)
-  : fmap[F] (transport (fun z => hom z d) p f) =
-      transport (fun z => hom z (fobj[F] d)) (f_equal (fobj[F]) p) (fmap[F] f).
-Proof.
-  destruct p. reflexivity.
-Defined.
-
-Lemma transport_functorial_cod (C D: Category) (F : @Functor C D) (c d d': C)
-  (p : d = d') (f : hom c d)
-  : fmap[F] (transport (fun z => hom c z) p f) =
-      transport (fun z => hom (fobj[F] c) z) (f_equal (fobj[F]) p) (fmap[F] f).
-Proof.
-  destruct p. reflexivity.
-Defined.
-
+#[export]
 Program Instance Compose_respects {C D E : Category} :
   Proper (equiv ==> equiv ==> equiv) (@Compose C D E).
 Next Obligation.
-  intros F G [FG_eq_on_obj FG_morphismcoherence] H K [HK_eq_on_obj HK_morphismcoherence].
-  unshelve eapply (_ ; _).
-  - intro c; simpl. 
-      exact(eq_trans (f_equal (fobj[F]) (HK_eq_on_obj c)) (FG_eq_on_obj (fobj[K] c))).
-  - intros c c' f.
-    simpl. unfold transport_r in *.
-    rewrite 2! eq_trans_sym_distr.
-    rewrite <- 2! transport_trans.
-    rewrite transport_relation_exchange.
-    rewrite <- (FG_morphismcoherence (fobj[K] c) (fobj[K] c') (fmap[K] f)).
-    rewrite 2! eq_sym_map_distr.
-    rewrite <- transport_functorial_dom.
-    rewrite <- transport_functorial_cod.
-    apply fmap_respects.
-    apply HK_morphismcoherence.
-Defined.
+  proper.
+  - isomorphism; simpl; intros.
+    + exact (fmap (to (x1 x3)) ∘ to (x2 (x0 x3))).
+    + exact (from (x2 (x0 x3)) ∘ fmap (from (x1 x3))).
+    + rewrite <- !comp_assoc.
+      rewrite (comp_assoc (x2 (x0 x3))).
+      rewrite iso_to_from, id_left.
+      rewrite <- fmap_comp.
+      rewrite iso_to_from; cat.
+    + rewrite <- !comp_assoc.
+      rewrite (comp_assoc (fmap _)).
+      rewrite <- fmap_comp.
+      rewrite iso_from_to, fmap_id, id_left.
+      rewrite iso_from_to; cat.
+  - simpl.
+    rewrite e0, e.
+    rewrite <- !comp_assoc.
+    rewrite (comp_assoc (fmap _)).
+    rewrite <- fmap_comp.
+    rewrite (comp_assoc (fmap _)).
+    rewrite <- fmap_comp.
+    rewrite !comp_assoc.
+    reflexivity.
+Qed.
 
 Corollary fobj_Compose `(F : D ⟶ E) `(G : C ⟶ D) {x} :
   fobj[F ◯ G] x = fobj[F] (fobj[G] x).
