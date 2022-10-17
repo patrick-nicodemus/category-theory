@@ -53,6 +53,7 @@ Instance/AST.v
 Instance/Adj.v
 Instance/Adjoints.v
 Instance/Cat.v
+Instance/StrictCat.v
 Instance/Cat/Cartesian.v
 Instance/Cat/Cartesian/Closed.v
 Instance/Cat/Cocartesian.v
