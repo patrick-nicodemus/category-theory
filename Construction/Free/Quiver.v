@@ -194,6 +194,35 @@ Proof.
   exists (fun _ => eq_refl). reflexivity.
 Qed.
 
+Proposition transport_id (C : Category) (c c' : C) (p : c = c') :
+  Logic.transport (hom c) p (@id C c) = Logic.transport_r (fun z => hom z c') p (@id C c').
+Proof.
+  now destruct p.
+Defined.
+
+Proposition transport_comp (C : Category) (c d e e' : C) (p : e = e')
+  (f : hom c d) (g : hom d e)
+  : Logic.transport (hom c) p (g ∘ f) = (Logic.transport (hom d) p g) ∘ f.
+Proof.
+  now destruct p.
+Defined.
+
+Proposition transport_r_comp (C : Category) (c c' d e : C) (p : c = c')
+  (f : hom c' d) (g : hom d e)
+  : Logic.transport_r (fun z => hom z e) p (g ∘ f) =
+      g ∘ (Logic.transport_r (fun z => hom z d) p f).
+Proof.
+  now destruct p.
+Defined.
+
+Proposition transport_comp_mid (C : Category) (c d d' e : C) (p : d = d')
+  (f : hom c d) (g : hom d' e)
+  : g ∘ (Logic.transport (hom c) p f) =
+      (Logic.transport_r (fun z => hom z e) p g) ∘ f.
+Proof.
+  now destruct p.
+Defined.
+
 Proposition QuiverHomomorphismEquivalence_Transitive (Q Q' : Quiver)
   : Transitive (QuiverHomomorphismEquivalence Q Q').
 Proof.
@@ -344,15 +373,7 @@ Section Underlying.
     + exact QuiverHomomorphismOfFunctor.
     + intros x y f g f_eq_g. destruct f_eq_g as [fg_eq_on_obj arrow_coherence].
       exists fg_eq_on_obj. simpl; intros c c' k.
-      specialize arrow_coherence with c c' k.
-      unfold Logic.transport_r in *.
-      apply
-        ((proper_transport (obj[y])
-            (λ z, fobj[f] c ~{ y }~> z))
-           (homset _) _ _ (fg_eq_on_obj c')) in arrow_coherence.
-      rewrite transport_trans in arrow_coherence.
-      rewrite eq_trans_sym_inv_l in arrow_coherence; simpl in arrow_coherence.
-      assumption.
+      apply arrow_coherence.
     + intro C. exists (fun x => eq_refl). now trivial.
     + intros x y z f g. exists (fun x => eq_refl). now trivial.
   Defined.
@@ -458,9 +479,33 @@ Next Obligation.
     - intros C F; unshelve esplit.
       + exact (InducedFunctor F).
       + simpl. exists (fun z => eq_refl). simpl. intros; now rewrite id_left.
-      + intros S Seqn.
-        Abort.
+      + intros S [FS_eq_on_obj FS_arrow_coherence]; simpl in FS_arrow_coherence.
+        exists FS_eq_on_obj.
+        intros x y f. induction f.
+        * change (@tnil _ _ y) with (@id FreeOnQuiver y).
+          simpl; rewrite fmap_id. rewrite transport_id; reflexivity.
+        * change (fmap[InducedFunctor F] (b ::: f)) with
+            ((fmap[InducedFunctor F] f) ∘ (@fedgemap _ _ F _ _ b)).
+          assert (RW : @equiv (@hom FreeOnQuiver i y) _ (b ::: f)
+                         (@compose FreeOnQuiver _ _ _ f (tlist_singleton b)))
+                   by 
+                   (unfold tlist_singleton; simpl; now rewrite <- tlist_app_cons);
+          rewrite RW, fmap_comp.
+          rewrite transport_comp.
+          rewrite IHf.
+          rewrite <- transport_comp_mid.
+          rewrite transport_r_comp.
+          apply compose_respects; [ reflexivity |].
+          apply FS_arrow_coherence.
+  Defined.
 End Free.
+
+Definition FreeCatFunctor : @Functor QuiverCategory StrictCat :=
+  (LeftAdjointFunctorFromUniversalArrows Forgetful
+     (fun _ => @UniversalArrowQuiverCat _ )).
+
+Definition FreeForgetfulAdjunction : Adjunction FreeCatFunctor Forgetful :=
+  AdjunctionFromUniversalArrows _ _ .
 
 Section FreeQuiverSyntax.
 Context {G : Quiver}.

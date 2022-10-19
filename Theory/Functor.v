@@ -346,6 +346,13 @@ Proof.
   intros a0 a1 a2 x p q; destruct p, q; reflexivity.
 Defined.
 
+Lemma transport_r_trans (A : Type) (B : A -> Type) :
+  forall (a0 a1 a2 : A) (x : B a2) (p : a0 = a1) (q : a1 = a2),
+    transport_r B p (transport_r B q x) = transport_r B (eq_trans p q) x.
+Proof.
+  intros a0 a1 a2 x p q; destruct p, q; reflexivity.
+Defined.
+
 Global Instance proper_transport (A : Type) (B : A -> Type) (S : forall a : A, Setoid (B a)) :
   forall (a a' : A) (p : a = a'), Proper (equiv ==> equiv) (transport B p).
 Proof.
@@ -384,38 +391,37 @@ Proof.
   destruct p. now trivial.
 Defined.
 
-
 Program Instance Functor_StrictEq_Setoid {C D : Category} : Setoid (C ⟶ D) := {
     equiv := fun F G =>
       { eq_on_obj : ∀ x : C, F x = G x
                   & ∀ (x y : C) (f : x ~> y),
-                   fmap[F] f ≈ transport_r (fun z => hom (fobj[ F ] x) z) (eq_on_obj y)
+            transport (fun z => hom (fobj[ F ] x) z) (eq_on_obj y) (fmap[F] f) ≈ 
                    (transport_r (fun z => hom z (fobj[G] y)) (eq_on_obj x) (fmap[G] f)) }
 }.
 Next Obligation.
   equivalence.
-  - unfold transport_r. rewrite 2! eq_sym_involutive.
-    rename x into F, y into G, x0 into eq_ob, x1 into x, y0 into y.
-    unshelve refine
-      (fst (transport_adjunction D (hom (fobj[G] x)) (fun d s t => t ≈ s)
-              _ _ _ _ _) _).
-    unshelve refine
-      (fst (transport_adjunction D (λ z : obj[D], z ~{ D }~> fobj[F] y)
-             (fun d s t => t ≈ s)
-              _ _ _ _ _) _).
-    unfold transport_r in *.
-    rewrite <- transport_relation_exchange.
-    symmetry. apply e.
+  - unfold transport_r. rewrite eq_sym_involutive.
+    fold (transport_r (λ z : obj[D], fobj[y] x1 ~{ D }~> z) (x0 y0)).
+    symmetry. 
+    rename x into F, y into G, x0 into eq_ob, x1 into x, y0 into y. 
+    refine ((snd
+               (transport_adjunction D (hom (fobj[G] x))
+                  (fun d t s => t ≈ s) _ _ _ _ _)) _).
+    rewrite transport_relation_exchange.
+    refine ((fst
+               (transport_adjunction D (fun d' => hom d' (fobj[G] y))
+                  (fun d t s => t ≈ s) _ _ _ _ _)) _).
+    exact (e _ _ _).
   - exact(eq_trans (x1 x2) (x0 x2)).
   - rename x into F, y into G, z into H, x1 into F_eq_ob_G,
       e0 into F_eq_ob_G_resp_mor, x0 into G_eq_ob_H,
       e into G_eq_ob_H_resp_mor, x2 into domf, y0 into codf.
-    unfold transport_r in *.
-    rewrite 2! eq_trans_sym_distr.
-    rewrite <- 2! transport_trans.
-    rewrite transport_relation_exchange.
-    rewrite <- (G_eq_ob_H_resp_mor domf codf f).
-    apply (F_eq_ob_G_resp_mor _ _ _).
+    simpl.
+    rewrite <- transport_trans, <- transport_r_trans.
+    rewrite F_eq_ob_G_resp_mor.
+    unfold transport_r at 1 2. rewrite transport_relation_exchange.
+    apply proper_transport_dom.
+    apply G_eq_ob_H_resp_mor.
 Defined.
 
 Lemma transport_f_equal (A B : Type) (C : B -> Type) (f : A -> B)
@@ -450,18 +456,18 @@ Defined.
   - intro c; simpl. 
       exact(eq_trans (f_equal (fobj[F]) (HK_eq_on_obj c)) (FG_eq_on_obj (fobj[K] c))).
   - intros c c' f.
-    simpl. unfold transport_r in *.
-    rewrite 2! eq_trans_sym_distr.
-    rewrite <- 2! transport_trans.
-    rewrite transport_relation_exchange.
-    rewrite <- (FG_morphismcoherence (fobj[K] c) (fobj[K] c') (fmap[K] f)).
-    rewrite 2! eq_sym_map_distr.
-    rewrite <- transport_functorial_dom.
+    simpl.
+    rewrite <- transport_trans, <- transport_r_trans.
     rewrite <- transport_functorial_cod.
-    apply fmap_respects.
-    apply HK_morphismcoherence.
+    rewrite HK_morphismcoherence.
+    unfold transport_r at 1 2.
+    rewrite transport_functorial_dom.
+    rewrite transport_relation_exchange.
+    rewrite <- eq_sym_map_distr.
+    apply proper_transport_dom.
+    now trivial.
  Defined.
-
+    
  Lemma fun_strict_equiv_id_right {A B} (F : A ⟶ B) : F ◯ Id ≈ F.
  Proof. construct; cat. Qed.
 
@@ -479,3 +485,4 @@ Defined.
  Arguments fun_equiv_comp_assoc {A B C D} F G H.
 
 End StrictEq.
+
