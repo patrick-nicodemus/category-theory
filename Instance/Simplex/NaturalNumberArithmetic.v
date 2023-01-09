@@ -5,6 +5,7 @@ Require Import mathcomp.ssreflect.fintype.
 Require Import mathcomp.ssreflect.finfun.
 Require Import mathcomp.ssreflect.ssrnat.
 Require Import mathcomp.ssreflect.eqtype.
+Require Import StrictProp.
 
 Global Create HintDb arith discriminated.
 (* Check leq_trans. *)
@@ -335,6 +336,19 @@ Proof.
   intros n m H.
   induction H; [ done | exact: ltnW ].
 Qed.
+
+(* Fixpoint sEq_nat (n : nat) : nat -> SProp := *)
+(*   fun m => match n with *)
+(*            | O => match m with *)
+(*                   | O => sUnit *)
+(*                   | S _ => sEmpty *)
+(*                   end *)
+(*            | S n' => match m with *)
+(*                      | 0 => sEmpty *)
+(*                      | S m' => sEq_nat n' m' *)
+(*                      end *)
+(*            end. *)
+
 
 
 Close Scope nat_scope.

@@ -25,9 +25,10 @@ Set Universe Polymorphism.
 
 Notation "''I_' n" := (ordinal n).
 
-(* First, we define the
-   category whose objects are "standard finite sets" [n] = { 0, ... n-1} and
-   whose morphisms are all functions between them. *)
+(** First, we define the
+    category whose objects are "standard finite sets" 
+    [n] = { 0, ... n-1} and
+    whose morphisms are all functions between them. *)
 Section stdfinset.
 Program Definition stdfinset : Category :=
   {|
@@ -707,4 +708,3 @@ Next Obligation. apply: val_inj; simpl; apply ffunP; intro i; rewrite 4! ffunE; 
 (* Done. *)
 
 Notation Δ := finord.
-
