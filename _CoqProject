@@ -8,8 +8,6 @@ Adjunction/Opposite.v
 Construction/Arrow.v
 Construction/Cayley.v
 Construction/Comma.v
-Construction/Comma/Adjunction.v
-Construction/Comma/Isomorphism.v
 Construction/Comma/Natural/Transformation.v
 Construction/Coproduct.v
 Construction/Enriched.v
@@ -103,10 +101,11 @@ Instance/Two.v
 Instance/Two/Discrete.v
 Instance/Zero.v
 Instance/Simplex/NaturalNumberArithmetic.v
+Instance/Simplex/FinType.v
+Instance/Simplex/Stdfinset.v
 Instance/Simplex/DNat.v
 Instance/Simplex/AugmentedSimplexCategory.v
 Instance/Simplex/MonoidalStructure.v
-Instance/Simplex/FaceAndDegeneracyMaps.v
 Lib.v
 Lib/Datatypes.v
 Lib/FMapExt.v

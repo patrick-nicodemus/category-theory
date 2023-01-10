@@ -26,7 +26,6 @@ Ltac ltn_predKhint :=
   | [ H : is_true (S ?Y <= ?X) |- ?X.-1.+1 = ?X ] => exact: (@ltn_predK Y X H)
   end.
 
-
 Global Hint Extern 2 => leq_transleft : arith.
 Global Hint Extern 2 => leq_transright : arith.
 Global Hint Extern 2 => ltn_predKhint : arith.
@@ -193,6 +192,7 @@ Global Hint Resolve n_leq_m_n_lt_msub1 : arith.
 Definition leB := fun n m : nat => rwP (@leP n m).
 Global Hint Resolve <- leB : arith.
 
+(*   δ_j ∘ δ_i = δ_i ∘ δ_(j-1)   ;  i < j *)
 Proposition δi_δj_nat :
   forall (i j : nat), i < j -> 
            comp (bump j) (bump i) =1 comp (bump i) (bump j.-1).
@@ -205,6 +205,7 @@ Proof.
   rewrite ineq'; by arith_simpl.
 Qed.
 
+(**   σ_j ∘ σ_i = σ_i ∘ σ_(j+1)   ;  i <= j *)
 Proposition σi_σj_nat :
   forall (i j : nat), i <= j -> 
            comp (unbump j) (unbump i) =1 comp (unbump i) (unbump j.+1).
@@ -275,7 +276,7 @@ Proposition δSi_σi_eq_id_nat : forall i : nat,
     resolve_boolean; arith_simpl; done. 
 Qed.
 
-Proposition δi_σj_i_gt_addnj1_nat {n : nat} :
+Proposition δi_σj_i_gt_Sj_nat {n : nat} :
   forall i j : nat, i > j.+1 ->
                     comp (unbump j) (bump i) =1 comp (bump i.-1) (unbump j).
 Proof.
@@ -349,6 +350,28 @@ Qed.
 (*                      end *)
 (*            end. *)
 
+(* Local Hint Resolve nlek_nm1lek : arith. *)
+(* Local Hint Resolve nltk_nm1ltk : arith. *)
+(* Local Hint Resolve nlek_nm1lekm1 : arith. *)
 
+(* Local Hint Resolve negbTE : arith. *)
+(* Ltac ltnNge_in_H := *)
+(*   match goal with *)
+(*   | [ H : is_true (~~ ( leq ?n ?m )) |-  _] => rewrite -ltnNge in H *)
+(*   end. *)
+(* Ltac ltnNge_in_goal := *)
+(*   match goal with *)
+(*   | [ |- is_true (~~ ( leq ?n ?m ))] => rewrite -ltnNge *)
+(*   end. *)
+(* Local Hint Extern 4 => ltnNge_in_H : arith. *)
+(* Local Hint Extern 4 => ltnNge_in_goal : arith. *)
+(* Proposition n_leq_m_n_lt_msub1 (n m : nat) : n < m -> n <= m.-1. *)
+(* Proof. *)
+(*   intro ineq. change n with n.+1.-1. by auto with arith. *)
+(* Qed. *)
+
+(* Local Hint Resolve n_leq_m_n_lt_msub1 : arith. *)
+(* Definition leB := fun n m : nat => rwP (@leP n m). *)
+(* Local Hint Resolve <- leB : arith. *)
 
 Close Scope nat_scope.

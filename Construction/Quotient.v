@@ -9,8 +9,10 @@ Section Quotient.
   Context (R : ∀ x y : C, crelation (hom x y)).
 
   Inductive R' : forall x y : C, crelation (hom x y) :=
-  | extendsR x y : forall f g : hom x y, f ≈ g -> R' _ _ f g
-  | trans x y : forall f g h: hom x y, R' _ _ f g -> R' _ _ g h -> R' _ _ f h
+  | extendssim x y : forall f g : hom x y, f ≈ g -> R' _ _ f g
+  | extendsR x y : forall f g : hom x y, R _ _ f g -> R' _ _ f g
+  | trans x y : forall f g h: hom x y,
+      R' _ _ f g -> R' _ _ g h -> R' _ _ f h
   | sym x y : forall f g : hom x y, R' _ _ f g -> R' _ _ g f
   | refl x y : forall f : hom x y, R' _ _ f f
   | leftcomp x y z : forall f : hom y z, forall g h : hom x y,
@@ -25,11 +27,14 @@ Section Quotient.
   Arguments rightcomp {x y z}.
   
   Program Definition Equiv_R' x y : Setoid (hom x y) :=
-    {| Setoid.equiv := R';
-      Setoid.setoid_equiv := {| Equivalence_Reflexive := fun f => refl f;
-                                Equivalence_Transitive := fun f g h => trans f g h;
-                                Equivalence_Symmetric := fun f g => sym f g
-                             |}
+    {|
+      Setoid.equiv := R';
+      Setoid.setoid_equiv :=
+        {|
+          Equivalence_Reflexive := fun f => refl f;
+          Equivalence_Transitive := fun f g h => trans f g h;
+          Equivalence_Symmetric := fun f g => sym f g
+        |}
     |}.
 
   Program Definition Quotient : Category := {|
@@ -43,22 +48,33 @@ Section Quotient.
   Next Obligation.
     intros g1 g2 ? f1 f2 ?;
     assert (t : (R' (g1 ∘ f1) (g1 ∘ f2))) by (now apply leftcomp);
-      now (apply (trans _ _ _ t), rightcomp).  Qed.
-  Next Obligation. apply (trans _ f); [ now apply extendsR, id_left | now apply refl]. Qed.
-  Next Obligation. apply (trans _ f); [ now apply extendsR, id_right | now apply refl]. Qed.
-  Next Obligation. apply extendsR, comp_assoc. Qed.
-  Next Obligation. apply extendsR, comp_assoc_sym. Qed.  
+      now (apply (trans _ _ _ t), rightcomp).
+  Qed.
+  Next Obligation.
+    apply (trans _ f);
+      [ now apply extendssim, id_left | now apply refl].
+  Qed.
+  Next Obligation.
+    apply (trans _ f);
+      [ now apply extendssim, id_right | now apply refl].
+  Qed.
+  Next Obligation. apply extendssim, comp_assoc. Qed.
+  Next Obligation. apply extendssim, comp_assoc_sym. Qed.  
 End Quotient.
 
 Program Definition InducedFunctor
-  (C D: Category) (R : ∀ x y : C, relation (hom x y)) (F : @Functor C D)
-  (p : ∀ (c c' : C) (f g : hom c c'), R c c' f g -> fmap f ≈ fmap g) :
-  @Functor (Quotient C) D :=  {| fobj := @fobj _ _ F; fmap := @fmap _ _ F |}.
+  (C D: Category)
+  (R : ∀ x y : C, crelation (hom x y))
+  (F : @Functor C D)
+  (p : ∀ (c c' : C) (f g : hom c c'), R c c' f g -> fmap f ≈ fmap g)
+  : @Functor (Quotient C R) D
+  :=  {| fobj := @fobj _ _ F; fmap := @fmap _ _ F |}.
 Next Obligation.
   intros f g Rfg; induction Rfg as
-    [ ? ? ? ? f_equiv_g 
+    [ ? ? ? ? f_equiv_g  |
     | ? ? ? ? ? ? Ff_equiv_Fg ? Fg_equiv_Fh | | | | ].
   { exact (fmap_respects _ _ _ _ f_equiv_g). }
+  { now apply p. }
   { exact (Equivalence_Transitive _ _ _  Ff_equiv_Fg Fg_equiv_Fh). }
   { now apply Equivalence_Symmetric. }
   { now apply Equivalence_Reflexive. }

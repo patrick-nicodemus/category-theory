@@ -42,11 +42,13 @@ Section findlast.
         [ | by rewrite -size_rev -has_find has_rev].
       rewrite size_cat.
       cut (find P (rev (s1 ++ s2)) = (find P (rev s2)));
-        [ intro RW; by rewrite RW | by rewrite rev_cat find_cat has_rev Heqn ].
+        [ intro RW; by rewrite RW |
+          by rewrite rev_cat find_cat has_rev Heqn ].
     } {
       unfold findlast.
       cut (find P (rev (s1 ++ s2)) = (size s2 + find P (rev s1))); 
-        [ intro H; rewrite size_cat H; by rewrite addnC -addnS (subnDl (size s2)) |].
+        [ intro H; rewrite size_cat H;
+            by rewrite addnC -addnS (subnDl (size s2)) |].
       by rewrite rev_cat find_cat has_rev Heqn size_rev.
     } 
   Qed.
@@ -59,7 +61,8 @@ Section findlast.
   Lemma findlast_rcons (s : seq A) (x : A) :
     findlast (rcons s x) = if P x then size s else findlast s.
   Proof.
-    remember (P x) as b eqn:Heqn; destruct b; unfold findlast; rewrite rev_rcons;
+    remember (P x) as b eqn:Heqn; destruct b; unfold findlast;
+      rewrite rev_rcons;
       simpl; rewrite -Heqn size_rcons; 
       [  by  rewrite subn1 | by rewrite subSS ].
   Qed.
@@ -72,14 +75,17 @@ Section findlast.
     rewrite -(revK s) nth_rev size_rev; [ | done].
     apply: before_find.
     destruct s; [ discriminate |].
-    assert (z : find P (rev (a :: s )) <= size (a :: s)) by ( rewrite -size_rev; exact: find_size).
+    assert (z : find P (rev (a :: s )) <= size (a :: s))
+      by ( rewrite -size_rev; exact: find_size).
     rewrite (ltn_subCl i_lt_size z).
     simpl size in *.
     rewrite subnS in fls_lt_i; rewrite ltnS.
-    set m := ( a in a <= _). apply (@leq_trans m.-1.+1); [ exact: leqSpred| assumption].
+    set m := ( a in a <= _). apply (@leq_trans m.-1.+1);
+      [ exact: leqSpred| assumption].
   Qed.
     
-  Lemma nth_findlast (a : A) (s : seq A) : has P s -> P (nth a s (findlast s)).
+  Lemma nth_findlast (a : A) (s : seq A)
+    : has P s -> P (nth a s (findlast s)).
   Proof.
     revert s. apply: last_ind; [ done | ].
     intros s x IH H.
@@ -93,29 +99,34 @@ Section findlast.
   Qed.
 End findlast.
 
-Definition find_ord { n : nat } (P : pred 'I_n ) :
-  has P (enum 'I_n) -> 'I_n.
+Definition find_ord { n : nat } (P : pred 'I_n )
+  : has P (enum 'I_n) -> 'I_n.
 Proof.
-  intro H; exists (find P (enum 'I_n)); rewrite has_find in H; by rewrite size_enum_ord in H.
+  intro H; exists (find P (enum 'I_n));
+    rewrite has_find in H;
+    by rewrite size_enum_ord in H.
 Defined.
 
 Definition least_st {n : nat} (P : pred 'I_n) : pred 'I_n :=
   fun x => (P x && [forall y, P y ==> (x <= y)]).
 
-Proposition find_ord_spec {n : nat} (P : pred 'I_n) (p : has P (enum 'I_n)) :
-  least_st P (find_ord P p).
+Proposition find_ord_spec {n : nat} (P : pred 'I_n)
+  (p : has P (enum 'I_n))
+  : least_st P (find_ord P p).
 Proof.
   set k := (has_default _ P _ p).
   unfold least_st; apply/andP; split.
   { cut (nth k (enum 'I_n) (find P (enum 'I_n)) = find_ord P p);
       [ intro A; rewrite -A; by apply nth_find |].
-    rewrite [find P (enum 'I_n)]/(val (find_ord P p)); exact: nth_ord_enum.
+    rewrite [find P (enum 'I_n)]/(val (find_ord P p));
+      exact: nth_ord_enum.
   }
   {
     apply (rwP forallP); intro x; apply/implyP; intro Px.
     rewrite -[_ <= _]negbK -ltnNge; apply (rwP negP); intro H; simpl in H.
     assert (z := (before_find k H)).
-    cut ( nth k (enum 'I_n) x = x). { intro R; rewrite R in z; rewrite Px in z; discriminate. }
+    cut ( nth k (enum 'I_n) x = x).
+    { intro R; rewrite R in z; rewrite Px in z; discriminate. }
     exact: nth_ord_enum.
   }
 Qed.
@@ -130,8 +141,8 @@ Defined.
 Definition gtest_st {n : nat} (P : pred 'I_n) :=
   fun x : 'I_n => P x && [forall y : 'I_n, P y ==> (y <= x)].
 
-Proposition gtest_st_spec {n : nat} (P : pred 'I_n) (p : has P (enum 'I_n)):
-  gtest_st P (findlast_ord P p).
+Proposition gtest_st_spec {n : nat} (P : pred 'I_n) (p : has P (enum 'I_n))
+  : gtest_st P (findlast_ord P p).
 Proof.
   unfold gtest_st. set k := (has_default _ P _ p).
   apply/andP; split.
@@ -146,12 +157,12 @@ Proof.
     simpl. rewrite leqNgt. apply (rwP negP); intro fltx.
     cut (P x = false). { intro H; rewrite Px in H; discriminate. }
     rewrite -(nth_ord_enum k x).
-    apply: after_findlast; rewrite fltx; simpl. rewrite size_enum_ord; by destruct x.
+    apply: after_findlast; rewrite fltx; simpl.
+    rewrite size_enum_ord; by destruct x.
   }
 Qed.
 
-Definition least_st {n : nat} (P : pred 'I_n) : pred 'I_n :=
-    fun x => (P x && [forall y, P y ==> (y <= x)]).
-
+(* Definition least_st {n : nat} (P : pred 'I_n) : pred 'I_n := *)
+(*     fun x => (P x && [forall y, P y ==> (y <= x)]). *)
 
 Close Scope nat.

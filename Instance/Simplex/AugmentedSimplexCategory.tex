@@ -1,0 +1,265 @@
+\documentclass[12pt]{report}
+\usepackage[]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{fullpage}
+\usepackage{coqdoc}
+\usepackage{amsmath,amssymb}
+\usepackage{url}
+\usepackage{textgreek} \usepackage{stmaryrd} \DeclareUnicodeCharacter{2208}{$\in$} \DeclareUnicodeCharacter{2218}{$\circ$}
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% This file has been automatically generated with the command
+%% coqdoc --latex -p \usepackage{textgreek} \usepackage{stmaryrd} \DeclareUnicodeCharacter{2208}{$\in$} \DeclareUnicodeCharacter{2218}{$\circ$} ./AugmentedSimplexCategory.v 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\coqlibrary{AugmentedSimplexCategory}{Library }{AugmentedSimplexCategory}
+
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Require} \coqdockw{Import} \coqdocvar{Category.Lib}.\coqdoceol
+\coqdocnoindent
+\coqdockw{Require} \coqdockw{Import} \coqdocvar{Theory.Category}.\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Require} \coqdockw{Import} \coqdocvar{Category.Instance.Simplex.NaturalNumberArithmetic}.\coqdoceol
+\coqdocnoindent
+\coqdockw{Require} \coqdockw{Import} \coqdocvar{Category.Instance.Simplex.Stdfinset}.\coqdoceol
+\coqdocnoindent
+\coqdockw{Require} \coqdockw{Import} \coqdocvar{Category.Instance.Simplex.FinType}.\coqdoceol
+\coqdocemptyline
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Require} \coqdockw{Import} \coqdocvar{ssreflect}.\coqdoceol
+\coqdocnoindent
+\coqdockw{Require} \coqdockw{Import} \coqdocvar{ssrfun}.\coqdoceol
+\coqdocnoindent
+\coqdockw{Require} \coqdockw{Import} \coqdocvar{ssrbool}.\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Require} \coqdockw{Import} \coqdocvar{mathcomp.ssreflect.seq}.\coqdoceol
+\coqdocnoindent
+\coqdockw{Require} \coqdockw{Import} \coqdocvar{mathcomp.ssreflect.ssrnat}.\coqdoceol
+\coqdocnoindent
+\coqdockw{Require} \coqdockw{Import} \coqdocvar{mathcomp.ssreflect.eqtype}.\coqdoceol
+\coqdocnoindent
+\coqdockw{Require} \coqdockw{Import} \coqdocvar{mathcomp.ssreflect.fintype}.\coqdoceol
+\coqdocnoindent
+\coqdockw{Require} \coqdockw{Import} \coqdocvar{mathcomp.ssreflect.finfun}.\coqdoceol
+\coqdocnoindent
+\coqdockw{Require} \coqdockw{Import} \coqdocvar{mathcomp.ssreflect.tuple}.\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Set} \coqdocvar{Primitive} \coqdocvar{Projections}.\coqdoceol
+\coqdocnoindent
+\coqdockw{Set} \coqdocvar{Universe} \coqdocvar{Polymorphism}.\coqdoceol
+\coqdocemptyline
+\coqdocemptyline
+\end{coqdoccode}
+This file defines the coface and codegeneracy maps of the simplex category \coqdocvar{Δ}, (including the proofs that they are monotonic) and proves that the simplicial identities hold. It builds on the contents of stdfinset.v to incorporate monotonicity conditions. 
+
+ Letting  [\coqdocvar{n}]  denote the n-th finite ordinal \{0,... \coqdocvar{n}-1\}, and letting \coqdocvar{i} ∈ [\coqdocvar{n}+1] , the \coqdocvar{i}-th coface map \coqdocvar{δ\_i} : [\coqdocvar{n}] \ensuremath{\rightarrow} [\coqdocvar{n}+1] is the unique monotonic injection whose image does not contain \coqdocvar{i}; that is, \coqdocvar{δ\_i}(\coqdocvar{x}) = \coqdocvar{x} if \coqdocvar{x} < \coqdocvar{i}, else \coqdocvar{δ\_i}(\coqdocvar{x}) = \coqdocvar{x}+1 \coqdockw{if} \coqdocvar{x} \ensuremath{\ge} \coqdocvar{i}. 
+
+ We define \coqdocvar{δ\_i} in terms of the \coqdocvar{lift} and \coqdocvar{bump} functions from the ssreflect fintype library. 
+
+ Again, letting \coqdocvar{i} ∈ [\coqdocvar{n}+1], the \coqdocvar{i}-th codegeneracy map σ\coqdocvar{\_i} : [\coqdocvar{n}+2] \ensuremath{\rightarrow} [\coqdocvar{n}+1], (denoted σ\coqdocvar{\_i}), is the unique monotonic surjection such that the preimage of \coqdocvar{i} contains two elements; that is, σ\coqdocvar{\_i}(\coqdocvar{x}) = \coqdocvar{x} if \coqdocvar{x} \ensuremath{\le} \coqdocvar{i}; else, σ\coqdocvar{\_i}(\coqdocvar{x}) = \coqdocvar{x}-1 if \coqdocvar{x} > \coqdocvar{i}. These functions satisfy the following equations, called the simplicial identities. 
+
+  $\delta_j \circ \delta_i = \delta_i \circ \delta_{j-1} ;\;  i < j $ 
+
+   $\sigma_j \circ \sigma_i = \sigma_i \circ \sigma_{j+1}  ;\;  i \leq j$ 
+
+   $\sigma_j \circ \delta_i = \delta_i \circ \sigma_(j-1)   ;  i < j $ 
+
+   $\sigma_j \circ \delta_j = id = \sigma_j \circ \delta_{j+1}$ 
+
+   $\sigma_j \circ \delta_i = \delta_{i-1} ;\; i > j+1$  
+
+ which we prove in this file. References for this material include ``Simplicial Objects in Algebraic Topology'' by Peter May, or ``Simplicial Homotopy Theory'' by Goerss and Jardine. The above five equations are taken from page 1 of May's book, except that in his book they occur dualized, i.e., they are meant to be interpreted in the opposite category to our simplex category. 
+\begin{coqdoccode}
+\coqdocemptyline
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{monotonic} \{\coqdocvar{n} \coqdocvar{m} : \coqdocvar{nat}\} (\coqdocvar{f} : '\coqdocvar{I\_m}\^{}\coqdocvar{n}) : \coqdocvar{bool} :=\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{pairwise} (\coqdockw{fun} \coqdocvar{i} \coqdocvar{j} : '\coqdocvar{I\_m} \ensuremath{\Rightarrow} \coqdocvar{leq} \coqdocvar{i} \coqdocvar{j}) (\coqdocvar{tuple\_of\_finfun} \coqdocvar{f}).\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{monotonicP} \{\coqdocvar{n} \coqdocvar{m} : \coqdocvar{nat}\} (\coqdocvar{f} : '\coqdocvar{I\_m}\^{}\coqdocvar{n})\coqdoceol
+\coqdocindent{1.00em}
+: \coqdocvar{reflect} (\coqdockw{\ensuremath{\forall}} \coqdocvar{i} \coqdocvar{j} : '\coqdocvar{I\_n}, \coqdocvar{i} \ensuremath{\le} \coqdocvar{j} \ensuremath{\rightarrow} \coqdocvar{f} \coqdocvar{i} \ensuremath{\le} \coqdocvar{f} \coqdocvar{j}) (\coqdocvar{monotonic} \coqdocvar{f}).\coqdoceol
+\coqdocnoindent
+\coqdockw{Proof}.\coqdoceol
+\coqdocindent{1.00em}
+\coqdoctac{rewrite} /\coqdocvar{monotonic}.\coqdoceol
+\coqdocindent{1.00em}
+\coqdoctac{apply}/(\coqdocvar{iffP} (\coqdocvar{tuple\_pairwiseP} \coqdocvar{\_} \coqdocvar{\_} \coqdocvar{\_} \coqdocvar{\_})); \coqdoctac{intro} \coqdocvar{H}.\coqdoceol
+\coqdocindent{1.00em}
+\{ \coqdoctac{intros} \coqdocvar{i} \coqdocvar{j} \coqdocvar{ineq}.\coqdoceol
+\coqdocindent{2.00em}
+\coqdoctac{assert} (\coqdocvar{k} := (\coqdocvar{H} \coqdocvar{i} \coqdocvar{j} (\coqdocvar{mem\_ord\_enum} \coqdocvar{i}) (\coqdocvar{mem\_ord\_enum} \coqdocvar{j}))).\coqdoceol
+\coqdocindent{2.00em}
+\coqdoctac{rewrite} \coqdocvar{leq\_eqVlt} \coqdoctac{in} \coqdocvar{ineq} ; \coqdoctac{move}/\coqdocvar{orP} : \coqdocvar{ineq}; \coqdoctac{intro} \coqdocvar{ineq};\coqdoceol
+\coqdocindent{3.00em}
+\coqdoctac{destruct} \coqdocvar{ineq} \coqdockw{as} [\coqdocvar{eq} \ensuremath{|} \coqdocvar{lt}].\coqdoceol
+\coqdocindent{2.00em}
+\{ \coqdoceol
+\coqdocindent{3.00em}
+\coqdoceol
+\coqdocindent{3.00em}
+\coqdoctac{move}/\coqdocvar{eqP}: \coqdocvar{eq}; \coqdoctac{intro} \coqdocvar{eq}; \coqdoctac{by} \coqdoctac{rewrite} (\coqdocvar{val\_inj} \coqdocvar{eq}). \}\coqdoceol
+\coqdocindent{2.00em}
+\coqdoctac{assert} (\coqdocvar{z} := \coqdocvar{k} \coqdocvar{lt}).\coqdoceol
+\coqdocindent{2.00em}
+\coqdoctac{rewrite} 2! \coqdocvar{tnth\_tuple\_of\_finfun} \coqdoctac{in} \coqdocvar{z}.\coqdoceol
+\coqdocindent{2.00em}
+\coqdoctac{exact}: \coqdocvar{z}.\coqdoceol
+\coqdocindent{1.00em}
+\}\coqdoceol
+\coqdocindent{1.00em}
+\coqdoctac{intros} \coqdocvar{i} \coqdocvar{j} \coqdocvar{\_} \coqdocvar{\_} \coqdocvar{ineq}.\coqdoceol
+\coqdocindent{1.00em}
+\coqdoctac{rewrite} 2! \coqdocvar{tnth\_tuple\_of\_finfun}. \coqdoctac{apply}: \coqdocvar{H}; \coqdoctac{exact}: \coqdocvar{ltnW}.\coqdoceol
+\coqdocnoindent
+\coqdockw{Qed}.\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Proposition} \coqdocvar{monotonic\_fold\_equiv} (\coqdocvar{n} \coqdocvar{m} : \coqdocvar{nat}) (\coqdocvar{f} : '\coqdocvar{I\_m}\^{}\coqdocvar{n}) :\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{monotonic} \coqdocvar{f} =\coqdoceol
+\coqdocindent{2.00em}
+\coqdockw{let} \coqdocvar{fg} := \coqdocvar{tuple.tval} (\coqdocvar{tuple\_of\_finfun} \coqdocvar{f}) \coqdoctac{in}\coqdoceol
+\coqdocindent{2.00em}
+\coqdockw{if} \coqdocvar{fg} \coqdockw{is} \coqdocvar{x} :: \coqdocvar{xs} \coqdockw{then}\coqdoceol
+\coqdocindent{3.00em}
+\coqdocvar{foldr} \coqdocvar{andb} \coqdocvar{true} (\coqdocvar{pairmap} (\coqdockw{fun} \coqdocvar{i} \coqdocvar{j} : '\coqdocvar{I\_m} \ensuremath{\Rightarrow} \coqdocvar{leq} \coqdocvar{i} \coqdocvar{j}) \coqdocvar{x} \coqdocvar{xs})\coqdoceol
+\coqdocindent{2.00em}
+\coqdockw{else} \coqdocvar{true}.\coqdoceol
+\coqdocnoindent
+\coqdockw{Proof}.\coqdoceol
+\coqdocindent{1.00em}
+\coqdoctac{apply}: \coqdocvar{pairmap\_trans\_pairwise}; \coqdoctac{rewrite} /\coqdocvar{nat\_of\_ord}; \coqdoctac{by} \coqdoctac{apply}: \coqdocvar{leq\_trans}.\coqdoceol
+\coqdocnoindent
+\coqdockw{Qed}.\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Proposition} \coqdocvar{idmap\_monotonic} (\coqdocvar{n} : \coqdocvar{nat}) : @\coqdocvar{monotonic} \coqdocvar{n} \coqdocvar{\_} (\coqdocvar{finfun} \coqdocvar{id}).\coqdoceol
+\coqdocnoindent
+\coqdockw{Proof}.\coqdoceol
+\coqdocindent{1.00em}
+\coqdoctac{apply}/\coqdocvar{monotonicP} \ensuremath{\Rightarrow} \coqdocvar{i} \coqdocvar{j}.\coqdoceol
+\coqdocindent{1.00em}
+\coqdoctac{by} \coqdoctac{rewrite} 2! \coqdocvar{ffunE}.\coqdoceol
+\coqdocnoindent
+\coqdockw{Qed}.\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Record} \coqdocvar{monotonic\_fn\_sig} (\coqdocvar{n} \coqdocvar{m} : \coqdocvar{nat}) :=\coqdoceol
+\coqdocindent{1.00em}
+\{ \coqdocvar{fun\_of\_monotonic\_fn} :> '\coqdocvar{I\_m}\^{}\coqdocvar{n} ;\coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{\_} : \coqdocvar{monotonic} \coqdocvar{fun\_of\_monotonic\_fn} \}.\coqdoceol
+\coqdocnoindent
+\coqdockw{Arguments} \coqdocvar{fun\_of\_monotonic\_fn} \{\coqdocvar{n}\} \{\coqdocvar{m}\} \coqdocvar{\_}.\coqdoceol
+\coqdocemptyline
+\end{coqdoccode}
+The following definition records monotonic\_fn with the hint database for subtypes, which means that we can apply lemmas about general subtypes to monotonic functions. For example, we can ``apply val\_inj'' to conclude that two monotonic functions are equal if the underlying (finite) functions are equal after the monotonicity property is forgotten. Monotonic functions are also equipped with a Boolean comparison function ``=='' automatically which is inherited from the underlying comparison function for finfuns. 
+\begin{coqdoccode}
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Canonical} \coqdockw{Structure} \coqdocvar{monotonic\_fn} (\coqdocvar{n} \coqdocvar{m} : \coqdocvar{nat}) :=\coqdoceol
+\coqdocindent{1.00em}
+[\coqdocvar{subType} \coqdockw{for} (@\coqdocvar{fun\_of\_monotonic\_fn} \coqdocvar{n} \coqdocvar{m}) ].\coqdoceol
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{monotonic\_fn\_eqMixin} (\coqdocvar{n} \coqdocvar{m} : \coqdocvar{nat}) :=\coqdoceol
+\coqdocindent{1.00em}
+[\coqdocvar{eqMixin} \coqdockw{of} (\coqdocvar{monotonic\_fn} \coqdocvar{n} \coqdocvar{m}) \coqdoctac{by} <:].\coqdoceol
+\coqdocnoindent
+\coqdockw{Canonical} \coqdockw{Structure} \coqdocvar{monotonic\_fn\_eqType} (\coqdocvar{n} \coqdocvar{m} : \coqdocvar{nat}) :=\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{EqType} (\coqdocvar{monotonic\_fn} \coqdocvar{n} \coqdocvar{m}) (\coqdocvar{monotonic\_fn\_eqMixin} \coqdocvar{n} \coqdocvar{m}).\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{comp} \{\coqdocvar{aT} : \coqdocvar{finType}\} \{\coqdocvar{rT} \coqdocvar{sT} : \coqdockw{Type}\} (\coqdocvar{f} : \{\coqdocvar{ffun} \coqdocvar{aT} \ensuremath{\rightarrow} \coqdocvar{rT}\})\coqdoceol
+\coqdocindent{1.00em}
+(\coqdocvar{g} : \coqdocvar{rT} \ensuremath{\rightarrow} \coqdocvar{sT}) \coqdoceol
+\coqdocindent{1.00em}
+: \{\coqdocvar{ffun} \coqdocvar{aT} \ensuremath{\rightarrow} \coqdocvar{sT}\}\coqdoceol
+\coqdocindent{1.00em}
+:=  [\coqdocvar{ffun} \coqdocvar{x} \ensuremath{\Rightarrow} \coqdocvar{g} (\coqdocvar{f} \coqdocvar{x})].\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Proposition} \coqdocvar{comp\_assoc} \{\coqdocvar{aT} : \coqdocvar{finType}\} \{\coqdocvar{rT} \coqdocvar{sT} \coqdocvar{mT}: \coqdockw{Type}\}\coqdoceol
+\coqdocindent{1.00em}
+(\coqdocvar{f} : \{\coqdocvar{ffun} \coqdocvar{aT} \ensuremath{\rightarrow} \coqdocvar{rT}\}) (\coqdocvar{g} : \coqdocvar{rT} \ensuremath{\rightarrow} \coqdocvar{sT}) (\coqdocvar{h} : \coqdocvar{sT} \ensuremath{\rightarrow} \coqdocvar{mT})\coqdoceol
+\coqdocindent{1.00em}
+: \coqdocvar{comp} \coqdocvar{f} (\coqdocvar{g} \symbol{92}; \coqdocvar{h}) = \coqdocvar{comp} (\coqdocvar{comp} \coqdocvar{f} \coqdocvar{g}) \coqdocvar{h}.\coqdoceol
+\coqdocnoindent
+\coqdockw{Proof}.\coqdoceol
+\coqdocindent{1.00em}
+\coqdoctac{apply}: \coqdocvar{eq\_ffun}; \coqdoctac{simpl}; \coqdoctac{intro}; \coqdoctac{apply}: \coqdoctac{f\_equal}; \coqdoctac{by} \coqdoctac{rewrite} \coqdocvar{ffunE}.\coqdoceol
+\coqdocnoindent
+\coqdockw{Qed}.\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{comp\_mon} (\coqdocvar{n} \coqdocvar{m} \coqdocvar{k} : \coqdocvar{nat}) (\coqdocvar{g} : @\coqdocvar{monotonic\_fn} \coqdocvar{m} \coqdocvar{k})\coqdoceol
+\coqdocindent{1.00em}
+(\coqdocvar{f} : @\coqdocvar{monotonic\_fn} \coqdocvar{n} \coqdocvar{m})\coqdoceol
+\coqdocindent{1.00em}
+:  @\coqdocvar{monotonic\_fn} \coqdocvar{n} \coqdocvar{k}.\coqdoceol
+\coqdocnoindent
+\coqdockw{Proof}.\coqdoceol
+\coqdocindent{1.00em}
+\coqdoctac{\ensuremath{\exists}} (\coqdocvar{comp} (\coqdocvar{fun\_of\_monotonic\_fn} \coqdocvar{f}) (\coqdocvar{fun\_of\_monotonic\_fn} \coqdocvar{g})).\coqdoceol
+\coqdocindent{1.00em}
+\coqdoctac{apply}/\coqdocvar{monotonicP}.\coqdoceol
+\coqdocindent{1.00em}
+\coqdoctac{intros} \coqdocvar{i} \coqdocvar{j} \coqdocvar{ineq}; \coqdoctac{simpl}.\coqdoceol
+\coqdocindent{1.00em}
+\coqdoctac{rewrite} 2! \coqdocvar{ffunE}.\coqdoceol
+\coqdocindent{1.00em}
+\coqdoctac{move}/\coqdocvar{monotonicP} : (\coqdocvar{valP} \coqdocvar{g}). \coqdoctac{intro} \coqdocvar{H}; \coqdoctac{apply}: \coqdocvar{H}.\coqdoceol
+\coqdocindent{1.00em}
+\coqdoctac{by} \coqdoctac{move}/\coqdocvar{monotonicP} : (\coqdocvar{valP} \coqdocvar{f}); \coqdoctac{intro} \coqdocvar{H}; \coqdoctac{apply} \coqdocvar{H}.\coqdoceol
+\coqdocnoindent
+\coqdockw{Defined}.\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{id\_mon} (\coqdocvar{n} : \coqdocvar{nat}) : @\coqdocvar{monotonic\_fn} \coqdocvar{n} \coqdocvar{n} :=\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{Sub} (\coqdocvar{finfun} (@\coqdocvar{id} '\coqdocvar{I\_n})) (\coqdocvar{idmap\_monotonic} \coqdocvar{n}).\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Program Definition} \coqdocvar{finord} : \coqdocvar{Category} :=\coqdoceol
+\coqdocindent{1.00em}
+\{|\coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{obj} := \coqdocvar{nat};\coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{hom} := \coqdockw{fun} \coqdocvar{n} \coqdocvar{m} \ensuremath{\Rightarrow} @\coqdocvar{monotonic\_fn} \coqdocvar{n} \coqdocvar{m};\coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{homset} := \coqdockw{fun} \coqdocvar{\_} \coqdocvar{\_} \ensuremath{\Rightarrow} \{| \coqdocvar{equiv} := \coqdocvar{eq} |\};\coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{Category.id} := \coqdocvar{id\_mon};\coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{compose} := \coqdocvar{comp\_mon};\coqdoceol
+\coqdocindent{2.00em}
+|\}.\coqdoceol
+\coqdocnoindent
+\coqdockw{Next} \coqdockw{Obligation}.\coqdoceol
+\coqdocindent{1.00em}
+\coqdoctac{apply}: \coqdocvar{val\_inj}; \coqdoctac{simpl}; \coqdoctac{apply} \coqdocvar{ffunP}; \coqdoctac{intro} \coqdocvar{i}; \coqdoctac{rewrite} 2! \coqdocvar{ffunE}; \coqdocvar{done}. \coqdockw{Qed}.\coqdoceol
+\coqdocnoindent
+\coqdockw{Next} \coqdockw{Obligation}.\coqdoceol
+\coqdocindent{1.00em}
+\coqdoctac{apply}: \coqdocvar{val\_inj}; \coqdoctac{simpl}; \coqdoctac{apply} \coqdocvar{ffunP}; \coqdoctac{intro} \coqdocvar{i}; \coqdoctac{rewrite} 2! \coqdocvar{ffunE}; \coqdocvar{done}. \coqdockw{Qed}.\coqdoceol
+\coqdocnoindent
+\coqdockw{Next} \coqdockw{Obligation}.\coqdoceol
+\coqdocindent{1.00em}
+\coqdoctac{apply}: \coqdocvar{val\_inj}; \coqdoctac{simpl}; \coqdoctac{apply} \coqdocvar{ffunP}; \coqdoctac{intro} \coqdocvar{i}; \coqdoctac{rewrite} 4! \coqdocvar{ffunE}; \coqdocvar{done}. \coqdockw{Qed}.\coqdoceol
+\coqdocnoindent
+\coqdockw{Next} \coqdockw{Obligation}.\coqdoceol
+\coqdocindent{1.00em}
+\coqdoctac{apply}: \coqdocvar{val\_inj}; \coqdoctac{simpl}; \coqdoctac{apply} \coqdocvar{ffunP}; \coqdoctac{intro} \coqdocvar{i}; \coqdoctac{rewrite} 4! \coqdocvar{ffunE}; \coqdocvar{done}. \coqdockw{Qed}.\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Notation} \coqdocvar{Δ} := \coqdocvar{finord}.\coqdoceol
+\end{coqdoccode}
+\end{document}

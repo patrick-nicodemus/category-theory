@@ -31,6 +31,11 @@
 /Makefile.coq.conf
 /Theory/Metacategory/ObjectsArrows
 /coqdoc.sty
+*.sty
+*.css
+*.html
+\#*\#
+*~
 /html/
 log_*.txt
 /build.log

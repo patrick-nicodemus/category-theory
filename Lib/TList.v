@@ -53,7 +53,11 @@ Fixpoint tlist_length {i j} (xs : tlist B i j) : nat :=
 
 Definition tlist_singleton {i j} (x : B i j) : tlist B i j := x ::: tnil.
 
-Equations tlist_rcons {i j k} (xs : tlist B i j) (y : B j k) : tlist B i k :=
+Notation "[ x ]" := (x ::: tnil).
+Notation "[ x , y ]" := (x ::: y ::: tnil).
+
+Equations tlist_rcons {i j k} (xs : tlist B i j) (y : B j k)
+  : tlist B i k :=
   tlist_rcons tnil y := y ::: (@tnil _ B k);
   tlist_rcons (@tcons _ _ _ _ _ x xs) y := x ::: tlist_rcons xs y.
       
@@ -63,7 +67,8 @@ Equations tlist_app {i j k} (xs : tlist B i j) (ys : tlist B j k) :
   tlist_app xs tnil := xs;
   tlist_app (@tcons _ _ _ _ _ x xs) ys := x ::: tlist_app xs ys.
 
-Notation "xs +++ ys" := (tlist_app xs ys) (at level 60, right associativity).
+Notation "xs +++ ys" := (tlist_app xs ys)
+                          (at level 60, right associativity).
 
 Equations tlist_uncons {i j} (xs : tlist B i j) :
   option { z : A & B i z * tlist B z j }%type :=
