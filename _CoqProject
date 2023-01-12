@@ -100,12 +100,6 @@ Instance/Shapes.v
 Instance/Two.v
 Instance/Two/Discrete.v
 Instance/Zero.v
-Instance/Simplex/NaturalNumberArithmetic.v
-Instance/Simplex/FinType.v
-Instance/Simplex/Stdfinset.v
-Instance/Simplex/DNat.v
-Instance/Simplex/AugmentedSimplexCategory.v
-Instance/Simplex/MonoidalStructure.v
 Lib.v
 Lib/Datatypes.v
 Lib/FMapExt.v
