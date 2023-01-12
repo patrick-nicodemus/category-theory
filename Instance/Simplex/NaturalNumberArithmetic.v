@@ -1,12 +1,12 @@
 Require Import ssreflect.
 Require Import ssrfun.
 Require Import ssrbool.
+
 Require Import mathcomp.ssreflect.fintype.
 Require Import mathcomp.ssreflect.finfun.
 Require Import mathcomp.ssreflect.ssrnat.
 Require Import mathcomp.ssreflect.eqtype.
-Require Import StrictProp.
-
+ 
 Global Create HintDb arith discriminated.
 (* Check leq_trans. *)
 (* leq_trans *)

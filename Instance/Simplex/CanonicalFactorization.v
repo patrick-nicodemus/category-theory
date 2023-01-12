@@ -243,8 +243,8 @@ Section FreelyGenerated.
     set z := (factorization_surj_subproof _ _ _ _).
     induction z.
     {
-      cbn. hammer.
-    
+      cbn. 
+    Abort.
     
 
   (* Definition factorization {n m : nat} (f : 'I_ m ^n)  *)
@@ -287,5 +287,3 @@ Section FreelyGenerated.
     move/andP: t => [notin _].
     exact: facemap_factoring_map f i notin.
   Defined.    
-
-

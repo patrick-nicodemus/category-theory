@@ -330,17 +330,10 @@ Definition rwP_surjectiveP (A : finType) (B : finType)
   := rwP (surjectiveP f).
 
 Definition rwP_ltP (n m : nat) := rwP (@ltP n m).
-Check rwP_ltP.
 
 #[export] Hint Rewrite <- rwP_surjectiveP : brefl.
 #[export] Hint Rewrite <- rwP_ltP : brefl.
 #[export] Hint Rewrite <- leB : brefl.
-Check leB.
-Print Rewrite HintDb brefl.
-
-(* Unset Hammer Z3. *)
-(* Unset Hammer CVC4. *)
-Set Hammer Debug.
 
 Lemma surj_preserves_top (n m: nat) (f : n.+1 ~{ Δ }~> m.+1)
   (p : surjective f) : f ord_max = ord_max.
@@ -370,6 +363,8 @@ Qed.
 
 (** The unique surjection n -> n in Δ is the identity. *)
 (** Why the hell is this proof so long? *)
+(** The proof heavily uses negative reasoning (proof by contradiction). Given this, it seems plausible that I might try rewriting the proof to use cut statements heavily, so that I can still take advantage of the backwards proof style of coq. *)
+
 Lemma identity_unique_surjection (n : nat) (f : n ~{ Δ }~> n)
   (p : surjective f)
   : Build_monotonic_fn_sig n n [ffun x => x] (idmap_monotonic n) = f.
@@ -401,7 +396,6 @@ Proof.
         rewrite -(rwP negP) => i_leq_a.
         have t := (snd (rwP (monotonicP (val f)))) (valP f) _ _ i_leq_a.
         rewrite pfeq in t.
-        Search ( ?x <= ?y) (?x < ?y ).
         rewrite ltnNge in i_lt_fi.
         rewrite -(rwP negP) in i_lt_fi.
         done.
@@ -409,7 +403,7 @@ Proof.
       specialize i_is_least with i' a.
       have k:= i_is_least a_lt_i'.
       rewrite nth_ord_enum in k.
-      rewrite ffunE in k. Search false negb.
+      rewrite ffunE in k. 
       apply (negbFE ) in k.
       rewrite -(rwP eqP) in  k.
       rewrite -k in pfeq.

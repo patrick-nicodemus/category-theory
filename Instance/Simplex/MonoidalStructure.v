@@ -42,7 +42,7 @@ Ltac destruct_ord :=
                                                                                   
   end.
 
-Hint Extern 7 => destruct_ord : arith.
+#[export] Hint Extern 7 => destruct_ord : arith.
                                   
 Proposition sum_of_monotonics {n n' m m' : nat}
   (f : @monotonic_fn n m) (g: @monotonic_fn n' m') :
@@ -75,9 +75,9 @@ Proof.
   } 
 Qed.
 
-Global Create HintDb monoidal discriminated.
-Global Hint Resolve eq_ffun : monoidal.
-Global Hint Rewrite ffunE : monoidal.
+Create HintDb monoidal discriminated.
+#[export] Hint Resolve eq_ffun : monoidal.
+#[export] Hint Rewrite ffunE : monoidal.
 
 (* The following line of code was suggested by Theo Winterhalter.  The default behavior of
    auto is to try and solve the goal completely or make no changes.  With the following
@@ -91,7 +91,7 @@ Global Hint Rewrite ffunE : monoidal.
    Be warned that this command essentially *disables backtracking*, as the only commands that 
    ever fail are the ones that fail immediately or fail at the maximum depth of the proof tree.
  *)
-Global Hint Extern 100 => shelve : monoidal.
+#[export] Hint Extern 100 => shelve : monoidal.
 
 Ltac always_simplify := do !
 ( intros;
@@ -106,9 +106,9 @@ Ltac always_simplify := do !
       (have ? : x < 0 by (apply: valP x)); discriminate
   end; move => /=;  try(done)).
                            
-Global Hint Extern 90 => always_simplify : monoidal.
-Global Hint Extern 8 (_ = _) => (do ! apply: f_equal => /=) : monoidal.
-Global Hint Extern 9 =>
+#[export] Hint Extern 90 => always_simplify : monoidal.
+#[export] Hint Extern 8 (_ = _) => (do ! apply: f_equal => /=) : monoidal.
+#[export] Hint Extern 9 =>
          match goal with
          |[ |- context[split _] ] => case: splitP
          end : monoidal.
