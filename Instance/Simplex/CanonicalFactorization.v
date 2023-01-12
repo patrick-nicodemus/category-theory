@@ -20,6 +20,8 @@ Require Import mathcomp.ssreflect.eqtype.
 Require Import mathcomp.ssreflect.fintype.
 Require Import mathcomp.ssreflect.finfun.
 
+From Hammer Require Import Hammer Reflect Tactics.
+
 Open Scope nat_scope.
 Notation "''I_' n" := (ordinal n).
 
@@ -205,21 +207,45 @@ Section FreelyGenerated.
     @hom free_cat_on_sd n m.
   Proof.
     assert (z : rgeq n m) by
-      (apply: leq_implies_rgeq; exact: (surjective_card f)). 
+      abstract(apply: leq_implies_rgeq; exact: (surjective_card f)). 
     induction z as [| m ineq IH ]; [ exact TList.tnil |].
     destruct m as [ | m]; 
       [ by destruct n;
         [ exact TList.tnil
         | abstract(destruct (f ord0); discriminate) ] |].
     apply rgeq_implies_leq in ineq.
-    assert (z := nltm_not_injective f ineq).
+    assert (z : ~~ injectiveb f) by
+      abstract(exact:(nltm_not_injective f ineq)).
     set i := not_injective_hitstwice_val f.
     unshelve apply (@tlist_rcons sd_quiver edges _ m.+2).
-    { apply (IH (degeneracy_factoring_map f i
-                   (not_injective_hitstwice_spec f z))).
-      apply (factoring_preserves_surjectivity); exact: p. }
-    { simpl. do 2! resolve_boolean. exact (σ i). }
+    {
+      rapply (IH (degeneracy_factoring_map f i
+                    (not_injective_hitstwice_spec f z))).
+      abstract(apply (factoring_preserves_surjectivity); exact: p). }
+    {
+      simpl.
+      destruct (@eqP _  m.+2 m). {
+        abstract(contradiction (Plus.n_SSn_stt m);
+          symmetry; assumption). }
+      destruct (@eqP _  m.+2 m.+2) as [eq | diseq].
+      { exact (σ i). }
+      { abstract(now contradiction diseq). }
+    }
   Defined.
+        
+  Proposition factorization_surj_spec (n m : nat) 
+    (f : @hom finord n m) (p : surjective f)
+    : fmap[evaluationFunctor] (factorization_surj f p) = f.
+  Proof.
+    rewrite /evaluationFunctor /InducedFunctor; unfold fmap.
+    rewrite /sd_induced_functor.
+    rewrite /factorization_surj.
+    set z := (factorization_surj_subproof _ _ _ _).
+    induction z.
+    {
+      cbn. hammer.
+    
+    
 
   (* Definition factorization {n m : nat} (f : 'I_ m ^n)  *)
   (*   (p : surjective f) : *)
@@ -241,23 +267,25 @@ Section FreelyGenerated.
   (*     apply (factoring_preserves_surjectivity); exact: p. } *)
   (*   { simpl. do 2! resolve_boolean. exact (σ i). } *)
   (* Defined. *)
-  
-  Program Definition factorization {n m : nat} (f : 'I_ m ^n) :
-    @hom free_cat_on_sd n m :=
-    match m with
-    | O => match n with
-           | O => (TList.tnil)
-           | _ => _
-           end
-    | S n' => _
-    end.
-  Next Obligation.
-    (** Maps from n -> 0 for n not equal to 0 *)
-    destruct n; [ contradiction |];
-    set x := (@ord0 n); destruct (f x); 
-                            auto with arith. Qed.
-  Next Obligation.
-    (** Maps n  -> n'.+1 *)
-    Locate surjective.
-    
-    (** TODO *)
+  Definition factorization {n m : nat} (f : 'I_ m ^n) :
+    @hom free_cat_on_sd n m.
+  Proof.
+    induction m;
+      [ destruct n as [ |n'];
+        [ exact: TList.tnil
+        | destruct (f (@ord0 n')); auto with arith] | ].
+    destruct (@idP (surjective f)) as [surj |not_surj];
+      [ exact: (factorization_surj f surj) |].
+
+    move/negP: not_surj => not_surj.
+    rewrite/surjective -not_surj_has in not_surj.
+    have t := gtest_st_spec _ not_surj.
+    set i := (findlast_ord _ not_surj) in t.
+    refine (_ +++ (δf _ i)).
+    apply: IHm.
+    rewrite /gtest_st in t.
+    move/andP: t => [notin _].
+    exact: facemap_factoring_map f i notin.
+  Defined.    
+
+

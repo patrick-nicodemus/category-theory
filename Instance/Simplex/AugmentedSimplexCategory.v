@@ -18,6 +18,8 @@ Require Import mathcomp.ssreflect.fintype.
 Require Import mathcomp.ssreflect.finfun.
 Require Import mathcomp.ssreflect.tuple.
 
+From Hammer Require Import Hammer Tactics Reflect.
+
 Set Primitive Projections.
 Set Universe Polymorphism.
 
@@ -321,4 +323,138 @@ Proof.
   simplex_simpl.
   exact: δi_σj_i_gt_Sj_nat.
 Qed.
+Locate ord0.
 
+Definition rwP_surjectiveP (A : finType) (B : finType)
+  (f : {ffun A -> B})
+  := rwP (surjectiveP f).
+
+Definition rwP_ltP (n m : nat) := rwP (@ltP n m).
+Check rwP_ltP.
+
+#[export] Hint Rewrite <- rwP_surjectiveP : brefl.
+#[export] Hint Rewrite <- rwP_ltP : brefl.
+#[export] Hint Rewrite <- leB : brefl.
+Check leB.
+Print Rewrite HintDb brefl.
+
+(* Unset Hammer Z3. *)
+(* Unset Hammer CVC4. *)
+Set Hammer Debug.
+
+Lemma surj_preserves_top (n m: nat) (f : n.+1 ~{ Δ }~> m.+1)
+  (p : surjective f) : f ord_max = ord_max.
+Proof.
+  move: p.
+  breflect.
+  move => p.
+  rewrite /FinFun.Surjective in p.
+  destruct (p ord_max) as [x pf].
+  have t: x <= @ord_max n by destruct x; auto.
+  (* breflect doesn't work so good here 
+                because of the dependent types. *)
+  (* For example, an ordinal is a pair (x; p) where p : x < n.
+       It's not easy to change the form of p without destroying the
+       ordinal. Here we have f (x; p) so we cannot really get rid of
+       the ordinal without killing this thing which depends on it. *)
+  apply val_inj.
+  apply/eqP.
+  now rewrite
+    eqn_leq
+    -{2}pf
+    ((snd (rwP (monotonicP (val f)))) (valP f) _ _ t)
+    /=
+    -ltnS
+       (valP (f ord_max)).
+Qed.
+
+(** The unique surjection n -> n in Δ is the identity. *)
+(** Why the hell is this proof so long? *)
+Lemma identity_unique_surjection (n : nat) (f : n ~{ Δ }~> n)
+  (p : surjective f)
+  : Build_monotonic_fn_sig n n [ffun x => x] (idmap_monotonic n) = f.
+Proof.
+  apply: val_inj => /=.
+  apply/ffunP => x.
+  rewrite ffunE.
+  destruct (findP [ffun a => a != f a ] (enum 'I_n))
+    as [ i | i iltn fi_neq_i i_is_least].
+  { 
+    rewrite has_exists negb_exists in i.
+    rewrite -(rwP forallP) in  i.
+    specialize i with x.
+    now rewrite ffunE negbK -(rwP eqP) in i.
+  }
+  {
+    rewrite size_enum_ord in iltn.
+    set i' := Ordinal iltn.
+    specialize fi_neq_i with i'.
+    rewrite (nth_ord_enum i' i') ffunE in fi_neq_i.
+    rewrite neq_ltn in fi_neq_i.
+    move/orP: fi_neq_i => [ i_lt_fi | i_gt_fi].
+    {
+      rewrite -(rwP (surjectiveP f)) in p.
+      destruct (p i') as [a pfeq].
+      have a_lt_i' : a < i'.
+      {
+        rewrite ltnNge.
+        rewrite -(rwP negP) => i_leq_a.
+        have t := (snd (rwP (monotonicP (val f)))) (valP f) _ _ i_leq_a.
+        rewrite pfeq in t.
+        Search ( ?x <= ?y) (?x < ?y ).
+        rewrite ltnNge in i_lt_fi.
+        rewrite -(rwP negP) in i_lt_fi.
+        done.
+      }
+      specialize i_is_least with i' a.
+      have k:= i_is_least a_lt_i'.
+      rewrite nth_ord_enum in k.
+      rewrite ffunE in k. Search false negb.
+      apply (negbFE ) in k.
+      rewrite -(rwP eqP) in  k.
+      rewrite -k in pfeq.
+      rewrite pfeq in a_lt_i'.
+      now rewrite ltnn in a_lt_i'.
+    }
+    {
+      have k := snd (rwP (@image_injP _ _ f (mem 'I_n))).
+      have m : #|[seq f x | x in mem 'I_n]| == #|'I_n|. {
+        apply/eqP; apply: eq_card.
+        move => a.
+        apply/idP.
+        set t := a \in 'I_n.
+        destruct (@idP t) as [| n0].
+        {
+          rewrite /surjective in p; move/forallP: p => p.
+          now specialize p with a.
+        }
+        {
+          intro m. contradiction n0. rewrite /t.
+          easy.
+        }
+      }
+      have km := k m.
+      cut ( ~ (injective f)). {
+        move=> a. contradiction a.
+        move =>  s0 s1.
+        exact: (km s0 s1 _ _).
+      }
+      cut (f (f i') = f i'). {
+        move=> a b.
+        cut(~ f i' = i'). {
+          move => Z; contradiction Z; exact (b (f i') i' a).
+        }
+        move =>e .
+        rewrite e in i_gt_fi. rewrite ltnn in i_gt_fi. done.
+      }
+      have r:= i_is_least i' (f i') i_gt_fi.
+      rewrite ffunE in r.
+      rewrite nth_ord_enum in r.
+      apply negbFE in r.
+      symmetry.
+      apply/eqP.
+      done.
+    }
+  } 
+Qed.   
+        
