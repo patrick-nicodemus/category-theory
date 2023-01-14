@@ -1,5 +1,5 @@
-(* Require Import Category.Lib. *)
-(* Require Import Category.Theory.Category. *)
+Require Import Category.Lib.
+Require Import Category.Theory.Category.
 
 Require Import Arith.
 From Hammer Require Import Hammer Tactics.
