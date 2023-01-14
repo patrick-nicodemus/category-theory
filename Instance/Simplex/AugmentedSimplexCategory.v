@@ -12,6 +12,7 @@ Require Import ssrfun.
 Require Import ssrbool.
 
 Require Import mathcomp.ssreflect.seq.
+Set Warnings "-notation-overridden".
 Require Import mathcomp.ssreflect.ssrnat.
 Require Import mathcomp.ssreflect.eqtype.
 Require Import mathcomp.ssreflect.fintype.
@@ -45,10 +46,13 @@ Set Universe Polymorphism.
 
 (** which we prove in this file. References for this material include "Simplicial Objects in Algebraic Topology" by Peter May, or "Simplicial Homotopy Theory" by Goerss and Jardine. The above five equations are taken from page 1 of May's book, except that in his book they occur dualized, i.e., they are meant to be interpreted in the opposite category to our simplex category. *)
   
-(* Open Scope nat_scope.  *)
+(* Open Scope nat_scope. *)
 
 Definition monotonic {n m : nat} (f : 'I_m^n) : bool :=
   pairwise (fun i j : 'I_m => leq i j) (tuple_of_finfun f).
+
+Definition strictly_monotonic {n m : nat} (f : 'I_m^n) : bool :=
+  pairwise (fun i j : 'I_m => i < j) (tuple_of_finfun f).
 
 Definition monotonicP {n m : nat} (f : 'I_m^n)
   : reflect (forall i j : 'I_n, i <= j -> f i <= f j) (monotonic f).
@@ -80,7 +84,23 @@ Proof.
   intros i j _ _ ineq.
   rewrite 2! tnth_tuple_of_finfun. apply: H; exact: ltnW.
 Qed.
-    
+
+Proposition strictly_monotonicP {n m : nat} (f : 'I_m^n) :
+  reflect (forall i j : 'I_n, i < j -> f i < f j) (strictly_monotonic f).
+Proof.
+  rewrite /monotonic.
+  apply/(iffP (tuple_pairwiseP _ _ _ _)); intro H.
+  { 
+    intros i j ineq.
+    have k := (H i j (mem_ord_enum i) (mem_ord_enum j)) ineq.
+    now rewrite 2! tnth_tuple_of_finfun in k.
+  }
+  {
+   intros i j _ _ ineq.
+   rewrite 2! tnth_tuple_of_finfun. now apply: H.
+  }
+Qed.
+
 Proposition monotonic_fold_equiv (n m : nat) (f : 'I_m^n) :
   monotonic f =
     let fg := tuple.tval (tuple_of_finfun f) in
@@ -323,7 +343,6 @@ Proof.
   simplex_simpl.
   exact: δi_σj_i_gt_Sj_nat.
 Qed.
-Locate ord0.
 
 Definition rwP_surjectiveP (A : finType) (B : finType)
   (f : {ffun A -> B})
@@ -361,9 +380,152 @@ Proof.
        (valP (f ord_max)).
 Qed.
 
-(** The unique surjection n -> n in Δ is the identity. *)
-(** Why the hell is this proof so long? *)
-(** The proof heavily uses negative reasoning (proof by contradiction). Given this, it seems plausible that I might try rewriting the proof to use cut statements heavily, so that I can still take advantage of the backwards proof style of coq. *)
+Lemma injectiveb_strictly_monotonic (n m : nat) (f : n ~{ Δ }~> m)
+  : injectiveb f = strictly_monotonic f.
+Proof.
+  rewrite -iff_equiv -(rwP (injectiveP _)) -(rwP (strictly_monotonicP _)).
+  split.
+  { move => a i j ineq.
+    have: (f i <= f j). {
+      apply ltnW in ineq.
+      have k:= (valP f).
+      rewrite -(rwP (monotonicP _)) in k.
+      now apply: k.
+    }
+    rewrite leq_eqVlt.
+    case/orP; [ | done ].
+    move => fi_eq_fj.
+    apply: False_rect.
+    cut (i = j). {
+      move/eqP => t; move: t.
+      apply: (elimF idP); now apply: ltn_eqF.
+    }
+    apply: a.
+    now apply/eqP.
+  }
+  move => a i j eq.
+  apply/eqP.
+  rewrite -(negb_involutive (i == j)).
+  apply/negP => neq.
+  rewrite neq_ltn in neq.
+  rewrite (rwP eqP) in eq.
+  move: eq. apply/negP.
+  rewrite neq_ltn.
+  rewrite -(rwP orP) in neq. case: neq.
+  { move => iltj.
+    have d := a i j iltj.
+    rewrite d; done. }
+  { move => jlti.
+    have d := a j i jlti.
+    rewrite d orbT; done. }
+Qed.
+
+Lemma injective_increasing (n m : nat) (f : n ~{ Δ }~> m) 
+  : (injectiveb f) -> [forall x : 'I_n, x <= f x].
+Proof.
+  move => j.
+  apply/forallP.
+  case => xval xbd /=.
+  induction xval.
+  { done. }
+  { have mon := valP f.
+    rewrite injectiveb_strictly_monotonic in j.
+    rewrite -(rwP (strictly_monotonicP f)) in j.
+    have xbd0 : (xval < n). {
+      auto with arith.
+    }
+    set x : 'I_n := Sub xval xbd0.
+    set Sx : 'I_n := Sub xval.+1 xbd.
+    have tm : x < S x by (auto with arith).
+    have jxSxtm := j x Sx tm.
+    specialize IHxval with xbd0.
+    now apply: (@leq_ltn_trans (f x)).
+  } 
+Qed.
+  
+Lemma surjective_decreasing (n m : nat) (f : n ~{ Δ }~> m) 
+  : (surjective f) -> [forall x : 'I_n, x >= f x].
+Proof.
+  move => j.
+  apply/forallP.
+  case => xval xbd /=.
+  (* Case m = 0 is trivial. *)
+  destruct m; [ destruct (f (Ordinal xbd)); auto with arith |].
+  (* mon  = f is monotonic. *)
+  have mon := (snd (rwP (monotonicP f))) (valP f).
+  (* g is a section of f. p states that g is a section of f. *)
+  have p := surjection_splitting_spec f j.
+  set g := surjection_splitting f j in p; clearbody g.
+  rewrite -(rwP (splitsP _ _)) /splits_spec in p.
+
+  induction xval.
+  {
+    
+    (* Want to show f(0) <= 0. 
+       Certainly 0 <= g 0;
+       so f 0 <= f g 0 = 0. *)
+    have t := p ord0.
+    have b := (f_equal val t); simpl in b.
+    rewrite -{2}b.
+    apply: mon; auto with arith.
+  } 
+  {
+    (* Want to show f(x.+1) <= x.+1. *)
+    have xbd0 : xval < n by auto with arith.
+    (* We prove that f(x.+1) <= f(x).+1 <= x.+1. *)
+    apply: (@leq_trans (f (Ordinal xbd0)).+1 ).
+    { (* First, f(x.+1) <= f(x).+1. *)
+      have fx_lt_n := valP (f (Ordinal xbd0)).
+      rewrite ltnS leq_eqVlt in fx_lt_n.
+      (* We break into cases depending on whether f(x)=m 
+         or f(x) < m. *)      
+      move/orP : fx_lt_n; case.
+      {
+        (* If f(x) = m, then f(x).+1 = m.+1.
+           But f(x.+1) < m.+1 by the assumption that f : n -> m.+1.
+           So f(x.+1) < f(x).+1, thus a fortiori f(x.+1) <= f(x).+1. *)
+        move/eqP => eq_n.
+        rewrite eq_n.
+        have t := valP (f (Ordinal xbd)).
+        auto with arith.
+      } 
+      {
+        (* Otherwise if f(x) < m then f(x).+1 is in m.+1, *)
+        (* so g(f(x).+1) is defined. *)
+        (* I claim x.+1 <= g(f(x).+1). *)
+        (* Proof: For the sake of a contradiction,
+           assume g(fx+1)< x.+1;  
+           equivalently g(fx+1) <= x. *)
+        (* Then by monotonicity f(g(fx+1))= (fx).+1 <= f(x);
+           a contradiction.*)
+        (* In what follows the proof above has been 
+            "reversed" from bottom to top to be more appropriate
+            for the backwards reasoning style of Coq. *)
+        move => xbd'.
+        rewrite -ltnS in xbd'.
+        set y := Ordinal xbd'.
+        change (f (Ordinal xbd) <= _ .+1) with
+          (f (Ordinal xbd) <= val y).
+        cut (is_true (xval.+1 <= g y)). {
+          move => a.
+          have tm := mon (Ordinal xbd) (g y) a.
+          now rewrite -(p y).
+        }
+        rewrite ltnNge.
+        apply/negP => t.
+        cut (is_true ((f (Ordinal xbd0)).+1 <= f (Ordinal xbd0))). {
+          now rewrite ltnn.
+        }
+        change ((f (Ordinal xbd0)).+1) with (val y).
+        rewrite -(p y).
+        apply: mon.
+        exact: t.
+      }
+    }
+    specialize IHxval with xbd0.
+    now rewrite ltnS.
+  } 
+Qed.
 
 Lemma identity_unique_surjection (n : nat) (f : n ~{ Δ }~> n)
   (p : surjective f)
@@ -372,83 +534,17 @@ Proof.
   apply: val_inj => /=.
   apply/ffunP => x.
   rewrite ffunE.
-  destruct (findP [ffun a => a != f a ] (enum 'I_n))
-    as [ i | i iltn fi_neq_i i_is_least].
-  { 
-    rewrite has_exists negb_exists in i.
-    rewrite -(rwP forallP) in  i.
-    specialize i with x.
-    now rewrite ffunE negbK -(rwP eqP) in i.
-  }
-  {
-    rewrite size_enum_ord in iltn.
-    set i' := Ordinal iltn.
-    specialize fi_neq_i with i'.
-    rewrite (nth_ord_enum i' i') ffunE in fi_neq_i.
-    rewrite neq_ltn in fi_neq_i.
-    move/orP: fi_neq_i => [ i_lt_fi | i_gt_fi].
-    {
-      rewrite -(rwP (surjectiveP f)) in p.
-      destruct (p i') as [a pfeq].
-      have a_lt_i' : a < i'.
-      {
-        rewrite ltnNge.
-        rewrite -(rwP negP) => i_leq_a.
-        have t := (snd (rwP (monotonicP (val f)))) (valP f) _ _ i_leq_a.
-        rewrite pfeq in t.
-        rewrite ltnNge in i_lt_fi.
-        rewrite -(rwP negP) in i_lt_fi.
-        done.
-      }
-      specialize i_is_least with i' a.
-      have k:= i_is_least a_lt_i'.
-      rewrite nth_ord_enum in k.
-      rewrite ffunE in k. 
-      apply (negbFE ) in k.
-      rewrite -(rwP eqP) in  k.
-      rewrite -k in pfeq.
-      rewrite pfeq in a_lt_i'.
-      now rewrite ltnn in a_lt_i'.
-    }
-    {
-      have k := snd (rwP (@image_injP _ _ f (mem 'I_n))).
-      have m : #|[seq f x | x in mem 'I_n]| == #|'I_n|. {
-        apply/eqP; apply: eq_card.
-        move => a.
-        apply/idP.
-        set t := a \in 'I_n.
-        destruct (@idP t) as [| n0].
-        {
-          rewrite /surjective in p; move/forallP: p => p.
-          now specialize p with a.
-        }
-        {
-          intro m. contradiction n0. rewrite /t.
-          easy.
-        }
-      }
-      have km := k m.
-      cut ( ~ (injective f)). {
-        move=> a. contradiction a.
-        move =>  s0 s1.
-        exact: (km s0 s1 _ _).
-      }
-      cut (f (f i') = f i'). {
-        move=> a b.
-        cut(~ f i' = i'). {
-          move => Z; contradiction Z; exact (b (f i') i' a).
-        }
-        move =>e .
-        rewrite e in i_gt_fi. rewrite ltnn in i_gt_fi. done.
-      }
-      have r:= i_is_least i' (f i') i_gt_fi.
-      rewrite ffunE in r.
-      rewrite nth_ord_enum in r.
-      apply negbFE in r.
-      symmetry.
-      apply/eqP.
-      done.
-    }
-  } 
-Qed.   
-        
+  apply val_inj.
+  apply/eqP.
+  rewrite eqn_leq.
+  have p' := p.
+  rewrite -injective_iff_surjective in p'.
+  (* rewrite -(rwP (injectiveP f)) in p'. *)
+  have inj_incr := injective_increasing _ _ _ p'.
+  rewrite -(rwP forallP) in inj_incr.
+  rewrite inj_incr.
+  have surj_decr := surjective_decreasing _ _ _ p.
+  rewrite -(rwP forallP) in surj_decr.
+  rewrite surj_decr.
+  done.
+Qed.

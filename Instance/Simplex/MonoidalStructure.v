@@ -11,6 +11,7 @@ Require Import ssreflect.
 Require Import ssrfun.
 Require Import ssrbool.
 Require Import mathcomp.ssreflect.seq.
+Set Warnings "-notation-overridden".
 Require Import mathcomp.ssreflect.ssrnat.
 Require Import mathcomp.ssreflect.eqtype.
 Require Import mathcomp.ssreflect.fintype.

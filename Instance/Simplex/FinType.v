@@ -1,7 +1,7 @@
 Require Import Category.Lib.
 Require Import Theory.Category.
 
-Require Import Category.Instance.Simplex.NaturalNumberArithmetic.
+(* Require Import Category.Instance.Simplex.NaturalNumberArithmetic. *)
 (* Require Import Category.Instance.Simplex.Ordinals. *)
 
 Require Import ssreflect.
@@ -9,6 +9,7 @@ Require Import ssrfun.
 Require Import ssrbool.
 
 Require Import mathcomp.ssreflect.seq.
+Set Warnings "-notation-overridden".
 Require Import mathcomp.ssreflect.ssrnat.
 Require Import mathcomp.ssreflect.eqtype.
 Require Import mathcomp.ssreflect.fintype.
@@ -18,11 +19,10 @@ Require Import Coq.Logic.FinFun.
 (* From Hammer Require Import Tactics Hammer Reflect. *)
 
 Open Scope nat_scope.
+
+(** Definition of surjective. Reflection property of surjectivity. *)
 Definition surjective {A B : finType} (f : {ffun A -> B}) := 
   [forall y : B, y \in (image f A)].
-
-(* Definition surjective {n m : nat} (f : 'I_m^n) 
-:= [forall y : 'I_m, mem (image f 'I_n) y]. *)
 
 Proposition surjectiveP {A B : finType} (f : {ffun A -> B})
   : reflect (Surjective f) (surjective f).
@@ -39,6 +39,97 @@ Proof.
       | symmetry; rewrite -pf; by apply: f_equal ]. }
 Defined.
 
+Proposition existsPS (A : finType) (P : pred A) :
+  [exists x, P x] -> { x : A & P x }.
+Proof.
+  (* set j := [pick x : A | P x]. *)
+  intro H.
+  destruct (pickP P) as [x i | e].
+  { exists x; exact: i. }
+  { apply (rwP existsP) in H.
+    apply False_rect; induction H;
+      rewrite ( e x) in H; discriminate. }
+Defined.
+
+(* first argument is the section, second argument is the retraction *)
+Definition splits {A : finType} {B : Type} (f: A -> B) (g : B -> A)
+  := [forall x, g (f x) == x].
+
+Definition splits_spec {A B : Type} (f : A -> B) (g : B -> A) :=
+  g \o f =1 id.
+
+Definition splitsP {A : finType} {B : Type} (f : A -> B) (g : B -> A)
+  : reflect (splits_spec f g) (splits f g).
+Proof.
+  exact eqfunP.
+Qed.
+
+(* Search Injective. *)
+(* Endo_Injective_Surjective:
+  ∀ [A : Type],
+  Finite A
+  → ListDec.decidable_eq A → ∀ f : A → A, Injective f <-> Surjective f
+Injective_map_NoDup:
+  ∀ [A B : Type] [f : A → B] [l : seq A],
+  Injective f → List.NoDup l → List.NoDup (List.map f l)
+Fin2Restrict.extend_injective:
+  ∀ [n : nat] (f : Fin.t n → Fin.t n),
+  bInjective n (Fin2Restrict.extend f) <-> Injective f
+Injective_Surjective_Bijective:
+  ∀ [A B : Type],
+  Finite A
+  → EqDec B → ∀ [f : A → B], Injective f → Surjective f → Bijective f
+Fin2Restrict.restrict_injective:
+  ∀ [n : nat] [f : nat → nat] (h : bFun n f),
+  Injective (Fin2Restrict.restrict h) <-> bInjective n f
+Injective_carac:
+  ∀ [A B : Type] [l : seq A],
+  Listing l → ∀ f : A → B, Injective f <-> List.NoDup (List.map f l)
+Injective_list_carac:
+  ∀ [A B : Type],
+  ListDec.decidable_eq A
+  → ∀ f : A → B,
+    Injective f <->
+    (∀ l : seq A, List.NoDup l → List.NoDup (List.map f l))
+ *)
+
+Proposition splits_implies_injective {A B : Type} {f : A -> B} {g : B -> A}
+  : splits_spec f g -> Injective f.
+Proof. 
+  move => p x y a.
+  have tx := p x; have ty := p y.
+  (* unfold comp in tx, ty. *)
+  destruct tx, ty.
+  unfold comp.
+  destruct a.
+  reflexivity.
+Defined.
+
+(** Every surjection between finite types has a section. *)
+Definition surjection_splitting {A B : finType} (f : {ffun A -> B})
+  : surjective f -> { ffun B -> A }.
+Proof.
+  move/forallP => p.
+  apply: finfun => b.
+  specialize p with b.
+  destruct (iinv_proof p) as [i _].
+  exact: i.
+Defined.
+
+Proposition surjection_splitting_spec {A B : finType} (f : {ffun A -> B})
+  (p : surjective f)
+  : splits (surjection_splitting f p) f.
+Proof.
+  apply/splitsP.
+  intro x.
+  rewrite /surjection_splitting.
+  cbn.
+  rewrite ffunE.
+  set j := (iinv_proof _).
+  destruct j as [x0 x0pf].
+  exact: e.
+Qed.
+
 Proposition iff_equiv (b c : bool) : (b <-> c) <-> b = c.
 Proof.
   split.
@@ -51,7 +142,6 @@ Qed.
 Proposition has_exists {A : finType} (P : pred A)
   : has P (enum A) = [exists a, P a].
 Proof.
-  Search (enum _)  ([exists _, _ : _ ]).
   apply/iff_equiv; split.
   { move/hasP => H. apply/existsP.
     destruct H as [x _ pf]; exists x; exact: pf. }
@@ -68,18 +158,6 @@ Proof.
     rewrite -has_exists.
     reflexivity.
 Qed.
-
-Proposition existsPS (A : finType) (P : pred A) :
-  [exists x, P x] -> { x : A & P x }.
-Proof.
-  (* set j := [pick x : A | P x]. *)
-  intro H.
-  destruct (pickP P) as [x i | e].
-  { exists x; exact: i. }
-  { apply (rwP existsP) in H.
-    apply False_rect; induction H;
-      rewrite ( e x) in H; discriminate. }
-Defined.
 
 (** For t a tuple, we have pairwise R t iff forall i j : 'I_n with i < j, R (tnth t i) (tnth t j) *)
 
@@ -139,7 +217,6 @@ Qed.
 
 (** For t a tuple, we have pairwise R t iff forall i j : 'I_n with i < j, R (tnth t i) (tnth t j) *)
 
-
 Proposition tuple_pairwiseP (A : Type) (n : nat)
   (t : n.-tuple A) (R : rel A) :
   reflect {in ord_enum n &, { homo @tnth n _ t : i j / i < j >-> R i j } } (pairwise R t). 
@@ -183,4 +260,60 @@ Proof.
   apply eq_from_tnth; intro i.
   by rewrite tnth_tuple_of_finfun tcastE -enum_rank_ord
                                             tnth_fgraph enum_rankK.
+Qed.
+
+(** Equivalence with notions in Coq.Logic.FinFun *)
+Proposition List_In_iff_mem (A : eqType) (l : seq A) (a : A)
+  : List.In a l <-> a \in l.
+Proof.
+  split.
+  {
+    revert a; induction l; [ move => ? listin; contradiction listin |].
+    move => a0 listin.
+    simpl in listin. 
+    case: listin. { move ->. exact: mem_head. }
+    move => t.
+    apply IHl in t.
+    rewrite in_cons t.
+    exact: orbT.
+  }
+  {
+    revert a; induction l; [ move => ?; now rewrite in_nil | ].
+    move => a0; rewrite in_cons; case/orP.
+    { move/eqP -> . rewrite /List.In. left. done. }
+    { move => ? ; simpl; right; now apply IHl. }
+  }
+Defined.
+
+Proposition Finfun_Finite_of_SSReflect_Finite ( A: finType)
+  : Finite A.
+Proof.
+  exists (enum A).
+  rewrite /Full.
+  move => a.
+  rewrite List_In_iff_mem.
+  exact: mem_enum.
+Qed.
+
+Proposition ListDec_decidable_eq_of_eqtype (A : eqType)
+  : ListDec.decidable_eq A.
+Proof.
+  rewrite /ListDec.decidable_eq.
+  move => x y.
+  rewrite /Decidable.decidable.
+  destruct (@idP (x == y)) as [i | n].
+  { move/eqP : i => i; left; done. }
+  { right. now move/eqP => n'. }
+Qed.
+
+Lemma injective_iff_surjective {A : finType} (f : {ffun A -> A})
+  : (injectiveb f = surjective f).
+Proof.
+  rewrite <- iff_equiv.
+  rewrite <- (rwP (injectiveP f)).
+  rewrite <- (rwP (surjectiveP f)).
+  have t := Endo_Injective_Surjective.
+  apply: t;
+    [ exact: Finfun_Finite_of_SSReflect_Finite | ].
+  exact: ListDec_decidable_eq_of_eqtype.
 Qed.
