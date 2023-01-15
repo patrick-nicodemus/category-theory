@@ -36,6 +36,7 @@
 *.html
 \#*\#
 *~
+.\#*
 /html/
 log_*.txt
 /build.log

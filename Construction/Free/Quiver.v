@@ -474,98 +474,129 @@ Next Obligation.
   apply Equivalence_Reflexive.
 Qed.
   
-  Definition InducedFunctor {C : Category} 
-    (F : QuiverHomomorphism G (QuiverOfCat C)) : @Functor (FreeOnQuiver) C.
-  Proof.
-    unshelve eapply Build_Functor. 
-    { change obj[C] with (@nodes (QuiverOfCat C)). exact fnodes. }
-    { intros c c'; simpl; intro f; unfold tlist in f.
-      induction f as [| c c_mid fhead ftail IHftail] ; [ exact id | ].
-      refine (compose IHftail _).
-      change _ with (@edges (QuiverOfCat C) (fnodes c) (fnodes c_mid)).
-      exact (fedgemap _ _ fhead). }
-    { abstract(intros c1 c2; simpl; intro f;
-        induction f as [| c1 c_mid fhead ftail IHf];
-        [
-        intros a H; simpl in H;
-          unfold tlist_quiver_equiv, tlist'_quiver_equiv in H;
-        simpl in H; destruct H; reflexivity
-        | 
-        intros g H; unfold tlist_quiver_equiv in H;
-        destruct g; [ now apply False_rect |];
-        simpl in H; destruct H as [q t t0]; simpl;
-        set (zm := tlist'_rect G edges c2 _ _ _) in *; clearbody zm;
-        destruct q;
-        refine (@compose_respects C
-                  (@fnodes _ _ F i)
-                  (@fnodes _ _ F c_mid)
-                  (@fnodes _ _ F c2)
-                  (zm c_mid ftail)
-                  (zm c_mid g)
-                  _
-                  ((@fedgemap _ _ F) i c_mid fhead)
-                  ((@fedgemap _ _ F) i c_mid e)
-                  _   );
-          [ apply IHf ; assumption
-          | apply (@fedgemap_respects _ _ F); exact t]
-        ]).
-    }
-    { reflexivity. }
-    { abstract(intros c1 c2 c3 f g; simpl;
-      induction g;
-       [ simpl; destruct (eq_sym (tlist_app_tnil_l f));
-         apply Equivalence_Symmetric, id_right
-       | destruct (tlist_app_comm_cons b g f); simpl;
-         set (zm := tlist'_rect _ _ _ _ _ _) in *;
-         rewrite comp_assoc; set (k := fedgemap _ _ _);
-         change (edges _  _ ) with
-           (@hom _ ((@fnodes _ _ F) i) ((@fnodes _ _ F) j)) in k;
-         refine  (compose_respects _ _ _ k k _);
-         [ apply IHg | reflexivity]]). }
-  Defined.
+Definition InducedFunctor {C : Category} 
+  (F : QuiverHomomorphism G (QuiverOfCat C)) : @Functor (FreeOnQuiver) C.
+Proof.
+  unshelve eapply Build_Functor. 
+  { change obj[C] with (@nodes (QuiverOfCat C)). exact fnodes. }
+  { intros c c'; simpl; intro f; unfold tlist in f.
+    induction f as [| c c_mid fhead ftail IHftail] ; [ exact id | ].
+    refine (compose IHftail _).
+    change _ with (@edges (QuiverOfCat C) (fnodes c) (fnodes c_mid)).
+    exact (fedgemap _ _ fhead). }
+  { abstract(intros c1 c2; simpl; intro f;
+             induction f as [| c1 c_mid fhead ftail IHf];
+             [
+               intros a H; simpl in H;
+               unfold tlist_quiver_equiv, tlist'_quiver_equiv in H;
+               simpl in H; destruct H; reflexivity
+             | 
+               intros g H; unfold tlist_quiver_equiv in H;
+               destruct g; [ now apply False_rect |];
+               simpl in H; destruct H as [q t t0]; simpl;
+               set (zm := tlist'_rect G edges c2 _ _ _) in *; clearbody zm;
+               destruct q;
+               refine (@compose_respects C
+                         (@fnodes _ _ F i)
+                         (@fnodes _ _ F c_mid)
+                         (@fnodes _ _ F c2)
+                         (zm c_mid ftail)
+                         (zm c_mid g)
+                         _
+                         ((@fedgemap _ _ F) i c_mid fhead)
+                         ((@fedgemap _ _ F) i c_mid e)
+                         _   );
+               [ apply IHf ; assumption
+               | apply (@fedgemap_respects _ _ F); exact t]
+            ]).
+  }
+  { reflexivity. }
+  { abstract(intros c1 c2 c3 f g; simpl;
+             induction g;
+             [ simpl; destruct (eq_sym (tlist_app_tnil_l f));
+               apply Equivalence_Symmetric, id_right
+             | destruct (tlist_app_comm_cons b g f); simpl;
+               set (zm := tlist'_rect _ _ _ _ _ _) in *;
+               rewrite comp_assoc; set (k := fedgemap _ _ _);
+               change (edges _  _ ) with
+                 (@hom _ ((@fnodes _ _ F) i) ((@fnodes _ _ F) j)) in k;
+               refine  (compose_respects _ _ _ k k _);
+               [ apply IHg | reflexivity]]). }
+Defined.
 
-  Definition UnitQuiverCatAdjunction :
-    QuiverHomomorphism G (QuiverOfCat (FreeOnQuiver)).
-  Proof.
-    unshelve eapply Build_QuiverHomomorphism.
-    { exact Datatypes.id. }
-    { exact (fun x y f => tlist_singleton f). }
-    { intros x y p q; unfold tlist_singleton;
-        simpl; unfold tlist_quiver_equiv, tlist'_quiver_equiv;
-        intros ?; exists eq_refl; [assumption | reflexivity]. }
-  Defined.
-  
-  Definition UniversalArrowQuiverCat
-    : @UniversalArrow QuiverCategory StrictCat G Forgetful.
-    unshelve eapply universal_arrow_from_UMP.
-    - exact FreeOnQuiver.
-    - exact UnitQuiverCatAdjunction.
-    - intros C F; unshelve esplit.
-      + exact (InducedFunctor F).
-      + simpl. exists (fun z => eq_refl). simpl.
-        intros; now rewrite id_left.
-      + intros S [FS_eq_on_obj FS_arrow_coherence];
-          simpl in FS_arrow_coherence.
-        exists FS_eq_on_obj.
-        intros x y f. induction f.
-        * change (@tnil _ _ y) with (@id FreeOnQuiver y).
-          simpl; rewrite fmap_id. rewrite transport_id; reflexivity.
-        * change (fmap[InducedFunctor F] (b ::: f)) with
-            ((fmap[InducedFunctor F] f) ∘ (@fedgemap _ _ F _ _ b)).
-          assert (RW : @equiv (@hom FreeOnQuiver i y) _ (b ::: f)
-                         (@compose FreeOnQuiver _ _ _ f
-                            (tlist_singleton b)))
-                   by 
-                   (unfold tlist_singleton;
-                    simpl; now rewrite <- tlist_app_cons);
+Definition InducedFunctor_Rewrite {C : Category} 
+  (F : QuiverHomomorphism G (QuiverOfCat C))
+  (a b c : G) (e : edges a b) (l : @hom FreeOnQuiver b c)
+  : fmap[InducedFunctor F] (e ::: l) =
+      (fmap[InducedFunctor F] l) ∘ (@fedgemap _ _ F _ _ e).
+Proof.
+  reflexivity.
+Qed.
+
+Definition InducedFunctor_Rewrite_rcons {C : Category} 
+  (F : QuiverHomomorphism G (QuiverOfCat C))
+  (a b c : G) (l : @hom FreeOnQuiver a b) (e : edges b c)
+  : fmap[InducedFunctor F] (tlist_rcons l e) ≈
+      (@fedgemap _ _ F _ _ e) ∘ (fmap[InducedFunctor F] l).
+Proof.
+  revert c e.
+  induction l.
+  { intros c e. simpl. 
+    rewrite tlist_rcons_equation_1; simpl.
+    now autorewrite with categories. }
+  { 
+    intros c e.
+    rewrite tlist_rcons_equation_2.
+    do 2 rewrite InducedFunctor_Rewrite.
+    rewrite IHl.
+    rewrite comp_assoc.
+    reflexivity.
+  }
+Qed.
+
+
+Definition UnitQuiverCatAdjunction :
+  QuiverHomomorphism G (QuiverOfCat (FreeOnQuiver)).
+Proof.
+  unshelve eapply Build_QuiverHomomorphism.
+  { exact Datatypes.id. }
+  { exact (fun x y f => tlist_singleton f). }
+  { intros x y p q; unfold tlist_singleton;
+      simpl; unfold tlist_quiver_equiv, tlist'_quiver_equiv;
+      intros ?; exists eq_refl; [assumption | reflexivity]. }
+Defined.
+
+Definition UniversalArrowQuiverCat
+  : @UniversalArrow QuiverCategory StrictCat G Forgetful.
+  unshelve eapply universal_arrow_from_UMP.
+  - exact FreeOnQuiver.
+  - exact UnitQuiverCatAdjunction.
+  - intros C F; unshelve esplit.
+    + exact (InducedFunctor F).
+    + simpl. exists (fun z => eq_refl). simpl.
+      intros; now rewrite id_left.
+    + intros S [FS_eq_on_obj FS_arrow_coherence];
+        simpl in FS_arrow_coherence.
+      exists FS_eq_on_obj.
+      intros x y f. induction f.
+      * change (@tnil _ _ y) with (@id FreeOnQuiver y).
+        simpl; rewrite fmap_id. rewrite transport_id; reflexivity.
+      * change (fmap[InducedFunctor F] (b ::: f)) with
+          ((fmap[InducedFunctor F] f) ∘ (@fedgemap _ _ F _ _ b)).
+        assert (RW : @equiv (@hom FreeOnQuiver i y) _ (b ::: f)
+                       (@compose FreeOnQuiver _ _ _ f
+                          (tlist_singleton b)))
+          by 
+          (unfold tlist_singleton;
+           simpl; now rewrite <- tlist_app_cons);
           rewrite RW, fmap_comp.
-          rewrite transport_comp.
-          rewrite IHf.
-          rewrite <- transport_comp_mid.
-          rewrite transport_r_comp.
-          apply compose_respects; [ reflexivity |].
-          apply FS_arrow_coherence.
-  Defined.
+        rewrite transport_comp.
+        rewrite IHf.
+        rewrite <- transport_comp_mid.
+        rewrite transport_r_comp.
+        apply compose_respects; [ reflexivity |].
+        apply FS_arrow_coherence.
+Defined.
 End Free.
 
 Definition FreeCatFunctor : @Functor QuiverCategory StrictCat :=

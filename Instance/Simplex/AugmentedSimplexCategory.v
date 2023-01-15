@@ -1,3 +1,4 @@
+(* -*- mode: coq; mode: visual-line -*-  *)
 Require Import Category.Lib.
 Require Import Theory.Category.
 
@@ -349,9 +350,12 @@ Definition rwP_surjectiveP (A : finType) (B : finType)
   := rwP (surjectiveP f).
 
 Definition rwP_ltP (n m : nat) := rwP (@ltP n m).
+Definition rwP_injectiveP (A B : finType) (f : A -> B)
+  := rwP (injectiveP f).
 
 #[export] Hint Rewrite <- rwP_surjectiveP : brefl.
 #[export] Hint Rewrite <- rwP_ltP : brefl.
+#[export] Hint Rewrite <- rwP_injectiveP : brefl.
 #[export] Hint Rewrite <- leB : brefl.
 
 Lemma surj_preserves_top (n m: nat) (f : n.+1 ~{ Δ }~> m.+1)
@@ -548,3 +552,53 @@ Proof.
   rewrite surj_decr.
   done.
 Qed.
+
+(** The degeneracy factoring map constructed in stdfinset sends monotonic maps to monotonic maps. *)
+
+Proposition degenerate_factor_monotonic {n m : nat} (f : n ~{ Δ }~> m.+1)
+  (i : 'I_m.+1) ( p: hitstwice f i )
+  : monotonic (degeneracy_factoring_map f i p).
+Proof.
+  rewrite -(rwP (monotonicP _)).
+  move => x y x_le_y.
+  unfold degeneracy_factoring_map.
+  set j := existsPS _ _ _ .
+  destruct j as [j lj].
+  do 2 rewrite ffunE.
+  have t : (y <= j) || (y > j) by rewrite leqNgt orNb.
+  case/orP: t => ineq.
+  {
+    set y_eq_j := y == j.
+    set x_eq_j := x == j.
+    destruct (@idP y_eq_j) as [y_doeseq_j | y_neq_j];
+    destruct (@idP x_eq_j) as [x_doeseq_j |xy_neq_j].
+    { done. }
+    { simpl. 
+      Search bump.
+               
+      (* Case: x < y = j. *)
+      (* Then f(x) <= f(y) = i. *)
+      (* Want to show f x <= i -> bump i (f x) <= i. *)
+      (* If f x = i, then bump i (f x) = fx +1... *)
+      
+      
+      
+      
+    move/orP: ineq; case => H.
+    {
+      
+      
+      rewrite H.
+    Search (?x <= ?y) (?x < ?y).
+    rewrite leq_eqVlt in ineq.
+
+    
+    simpl.
+  
+  
+  destruct ((y <= i)).
+  { 
+    
+
+    
+  Search (?x <= ?y) (?y.+1).
