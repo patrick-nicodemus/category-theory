@@ -327,7 +327,7 @@ Proof.
   assert (z : i < m.+2) by abstract(destruct i as [ival ibd];
                                       by apply (@leq_trans m.+1)).
   set i' := Ordinal z.
-  exact: (if x == x1 then i' else (lift i' (f x))).
+  exact: (if (x <= x1) && (f x == i) then i' else (lift i' (f x))).
 Defined.
 
 Proposition degeneracy_factoring_map_eq {n m : nat}
@@ -340,14 +340,13 @@ Proof.
     apply val_inj; unfold degeneracy_factoring_map;
     simpl.
   set k := existsPS _ _ _; destruct k as [x1 k'].
-  remember (x == x1) as b eqn:Heqn; apply symmetry in Heqn;
+  
+  remember ((x <= x1) && (f x == i)) as b eqn:Heqn; apply symmetry in Heqn;
     destruct b; rewrite Heqn.
-  { simpl. apply (rwP existsP) in k'; destruct k' as [x2 conj].
-    apply (rwP andP) in conj; destruct conj as  [conj _];
-      apply (rwP andP) in conj; destruct conj as [ _ fx1i].
-    apply (rwP eqP) in Heqn. rewrite Heqn. apply (rwP eqP) in fx1i.
-    rewrite fx1i.
-    unfold unbump. by rewrite ltnn subn0. }
+  { simpl.
+    move/andP : Heqn => [Heqn1 Heqn2]; move/eqP :Heqn2  ->.
+    unfold unbump.
+    now rewrite ltnn subn0. }
   { by symmetry; apply: bumpK. }
 Qed.
 
@@ -392,7 +391,7 @@ Local Hint Extern 1 => ord_to_arith : arith.
 Proposition factoring_preserves_surjectivity {n m : nat} (f : 'I_(m.+1)^n)
   (i : 'I_m.+1) (p : hitstwice f i) ( issurj : surjective f )
   : surjective (degeneracy_factoring_map f i p).
-Proof.
+ Proof.
   unfold surjective; apply (rwP forallP); intro y; apply (rwP imageP).
   unfold degeneracy_factoring_map.
   set k := existsPS _ _ _; destruct k as [x1 k].
@@ -408,16 +407,26 @@ Proof.
        f x = unbump i y; then g x = bump i (unbump i y) = y (because x ≠ x1). *)
   (* By cases on whether y = i. *)
   destruct (eq_comparable y (ord_upcast i)) as [y_eq_i | y_neq_i].
-  { exists x1; [ done |];
-    rewrite ffunE eq_refl y_eq_i; apply val_inj; destruct i; done. }
+  { exists x1; [ done |].
+    rewrite ffunE leqnn /= .
+    have k' := k.
+    rewrite -(rwP existsP) in k'.
+    destruct k' as [x2 H].
+    do 2 rewrite -(rwP andP) in H.
+    destruct H as [[x1_lt_x2 fx1_eq_i] fx2_eq_i].
+    rewrite fx1_eq_i. apply val_inj.
+    destruct i.
+    unfold ord_upcast in y_eq_i. 
+    exact: (f_equal val y_eq_i).
+  }
   { set z := (degeneracy_factoring_map_subproof _ _ _ _ _ _); clearbody z.
     apply (rwP existsP) in k; destruct k as [x2 cong1].
       apply (rwP andP) in cong1; destruct cong1 as [cong2 fx2eqi].
       apply (rwP andP) in cong2; destruct cong2 as [x1ltx2 fx1eqi].
       destruct (eq_comparable y (lift (ord_upcast i) i)) as
         [y_eq_si | y_neq_si].
-    { exists x2; [ done |]; rewrite ffunE. 
-      resolve_boolean.
+      { exists x2; [ done |]; rewrite ffunE.
+        rewrite leqNgt x1ltx2 /=.
       rewrite y_eq_si; apply val_inj; simpl.
       do ! ord_to_arith; apply (rwP eqP) in fx2eqi; rewrite fx2eqi;
          destruct i; done.
@@ -425,19 +434,41 @@ Proof.
     { apply (rwP (surjectiveP f)) in issurj.
       destruct (issurj (σ i y)) as [x fx_eq_y].
       exists x; [ done |]; rewrite ffunE.
-      assert (H: (x == x1) = false ). {
+      (* y = i *)
+      assert (H: (f x == i) = false ). {
         (* x1 ≠ x because f x1 = i but f x ≠ i. 
            In turn f x ≠ i because f x = unbump i y and 
            y is neither i nor i+1, so unbump i y ≠ i. *)
-          apply (introF eqP); intro c.
-          apply (f_equal f) in c.
-          rewrite c in fx_eq_y.
-          apply (rwP eqP) in fx1eqi. rewrite fx1eqi in fx_eq_y.
-          symmetry in fx_eq_y.
-          apply (rwP eqP) in fx_eq_y. rewrite σ_i_eq_i in fx_eq_y.
-          by rewrite (introF eqP y_neq_i) in fx_eq_y;
-          rewrite (introF eqP y_neq_si ) in fx_eq_y.
-      } rewrite H; apply val_inj; 
+        apply (introF eqP); intro c.
+        rewrite c in fx_eq_y.
+        unfold σ in fx_eq_y. rewrite ffunE in fx_eq_y.
+        have t := (f_equal val fx_eq_y).
+        simpl in t.
+        unfold unbump in t.
+        destruct (@ltP i y) as [i_lt_y | i_ge_y].
+        { 
+          contradiction y_neq_si.
+          unfold lift, ord_upcast.
+          apply val_inj; simpl.
+          unfold bump.
+          destruct i as [i ibd], y as [yval ybd].
+          simpl in *.
+          destruct yval.
+          { apply False_rect. move/ltP :i_lt_y. done. }
+          rewrite subn1 /= in t.
+          rewrite leqnn add1n.
+          now destruct t.
+        }
+        {
+          rewrite subn0 in t.
+          contradiction y_neq_i.
+          apply val_inj.
+          destruct i as [ival ibd], y as [yval ybd].
+          simpl in *.
+          symmetry; exact: t.
+        } 
+      }
+      rewrite H andbF; apply val_inj;
         rewrite fx_eq_y; unfold σ; rewrite ffunE; simpl.
       rewrite unbumpKcond.
       set s := ( _ == _ ); assert (RW : s = false). {

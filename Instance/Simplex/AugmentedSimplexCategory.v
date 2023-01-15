@@ -566,39 +566,75 @@ Proof.
   destruct j as [j lj].
   do 2 rewrite ffunE.
   have t : (y <= j) || (y > j) by rewrite leqNgt orNb.
+  have mon := (snd (rwP (monotonicP f)) (valP f) x y x_le_y).
   case/orP: t => ineq.
   {
-    set y_eq_j := y == j.
-    set x_eq_j := x == j.
-    destruct (@idP y_eq_j) as [y_doeseq_j | y_neq_j];
-    destruct (@idP x_eq_j) as [x_doeseq_j |xy_neq_j].
+    have -> : x <= j by exact: (leq_trans x_le_y ineq).
+    rewrite ineq; do 2 rewrite andTb.
+    
+    set fy_eq_i := f y == i.
+    set fx_eq_i := f x == i.
+    destruct (@idP fy_eq_i) as [y_eq | y_diseq];
+    destruct (@idP fx_eq_i) as [x_eq | x_diseq ].
     { done. }
-    { simpl. 
-      Search bump.
-               
-      (* Case: x < y = j. *)
-      (* Then f(x) <= f(y) = i. *)
-      (* Want to show f x <= i -> bump i (f x) <= i. *)
-      (* If f x = i, then bump i (f x) = fx +1... *)
-      
-      
-      
-      
-    move/orP: ineq; case => H.
+    { simpl.
+      unfold bump.
+      have -> : (i <= f x) = false. {
+        apply negbTE.
+        rewrite -ltnNge ltn_neqAle.
+        have -> : (f x <=i) by now move/eqP: y_eq => <-.
+        rewrite andbT.
+        rewrite negE.
+        exact: x_diseq.
+      }
+      rewrite add0n.
+      now move/eqP: y_eq => <-.
+    }
     {
-      
-      
-      rewrite H.
-    Search (?x <= ?y) (?x < ?y).
-    rewrite leq_eqVlt in ineq.
-
-    
+      (* Case: f x = i, f y > i *)
+      simpl; unfold bump.
+      cut (is_true (i <= f y)). {
+        move => a.
+        rewrite a add1n.
+        exact: (leq_trans a).
+      }
+      apply: (leq_trans _ mon).
+      now move/eqP: x_eq => ->.
+    }
+    {
+      now rewrite leq_bump2.
+    }
+  }
+  (* We now consider the case j < y . *)
+  {
+    rewrite [y  <= j]leqNgt .
+    rewrite ineq /=.
+    unfold bump.
+    have t1 : (i <= f y). {
+      apply ltnW in ineq.
+      apply (snd (rwP (monotonicP f)) (valP f) j y) in ineq.
+      rewrite -(rwP existsP) in lj; case: lj => [j' a].
+      do 2 rewrite -(rwP andP) in a.
+      case: a => [[j_lt_j' fj_eq_i] fjp_eq_i].
+      now move/eqP: fj_eq_i => <-.
+    }
+    rewrite t1 add1n.
+    destruct (@leP x j) as [x_le_j | x_gt_j].
+    {
+      rewrite /=.
+      set fx_eq_i := (f x == i).
+      destruct fx_eq_i.
+      { exact: (leq_trans t1). }
+      { simpl. unfold bump.
+        set abc := (i <= f x). destruct abc.
+        { auto. }
+        { rewrite add0n. exact: (leq_trans mon). }
+      }
+    }
     simpl.
-  
-  
-  destruct ((y <= i)).
-  { 
-    
-
-    
-  Search (?x <= ?y) (?y.+1).
+    unfold bump.
+    set abc := (i <= f x). destruct abc.
+        { auto. }
+        { rewrite add0n. exact: (leq_trans mon). }
+  }
+Qed.
