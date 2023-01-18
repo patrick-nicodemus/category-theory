@@ -308,9 +308,7 @@ End FreelyGenerated.
     exact: factorization_surj_finset'.
   Defined.
 
-  (** TODO : The last several lines of this proof are mostly pointless bookkeeping/unfolding of definitions. *)
-  (** It would be good to go back at some point and clean this up. *)
-  (** For example, in this code we directly deal with a lot of objects defined in Stdfinset.v. But we probably should not go down to that level of abstraction. Instead we probably want to define new things in AugmentedSimplexCategory.v on top of those and use them in the proof instead. *)
+  (** In this code we directly deal with a lot of objects defined in Stdfinset.v. But we probably should not go down to that level of abstraction. Instead we probably want to define new things in AugmentedSimplexCategory.v on top of those and use them in the proof instead. *)
   (** The theorem is only true for f monotonic so when proving this kind of theorem about the factorization algorithm one should only work with objects in the simplex category. *)
 
   Proposition factorization_surj_spec (n m : nat) 
@@ -319,35 +317,24 @@ End FreelyGenerated.
   Proof.
     unfold factorization_surj_finset.
     set z := (factorization_surj_finset_subproof _ _ _ _).
-    induction z; [ exact: identity_unique_surjection |].
-    destruct n0.
-      (* The case n0=0 is absurd. *)
-    { destruct n;
-        [
-          apply False_rect;
-          clear IHz;
-          apply rgeq_implies_leq in z;
-          rewrite ltnn in z;
-          discriminate z
-        | have t := valP (f ord0);
-          rewrite ltn0 in t;
-          discriminate t            
-        ].
-    }
+    induction z as [ | m]; [ exact: identity_unique_surjection |].
+    (* The case m=0 is absurd so we do it separately. *)
+    destruct m; [
+      destruct n;
+        [ discriminate (rgeq_implies_leq _ _ z)
+        | discriminate (valP (f ord0))]  |].
 
     rewrite factorization_surj_finset_rewrite.
     cbn zeta.
-    unfold evaluationFunctor.
-    unfold InducedFunctor.
-    unfold fmap.
-    rewrite (@InducedFunctor_Rewrite_rcons sd_quiver Δ sd_quiverhom).
+    unfold evaluationFunctor, InducedFunctor, fmap.
+    rewrite (@InducedFunctor_Rewrite_rcons _ _ sd_quiverhom).
     set r := rleq_nm_notinj f z.
     set ht := not_injective_hitstwice_spec f r.
     set i := not_injective_hitstwice_val f in ht *.
     have fps := factoring_preserves_surjectivity f i ht p.
     set g := (degeneracy_factoring_map _ _ _) in fps *.
-    set g0 : (@hom finord n n0.+2) :=
-      @Sub {ffun 'I_n -> 'I_n0.+2} monotonic
+    set g0 : (@hom finord n m.+2) :=
+      @Sub {ffun 'I_n -> 'I_m.+2} monotonic
         _ g (degenerate_factor_monotonic _ _ _).
     rewrite (IHz g0 fps).
     rewrite σf_mapsto_σ.
@@ -355,19 +342,12 @@ End FreelyGenerated.
     unfold AugmentedSimplexCategory.comp.
     apply ffunP => x.
     rewrite ffunE ffunE.
-
-    have dg_fac := degeneracy_factoring_map_eq f.
-    simpl in dg_fac.
-    specialize dg_fac with i ht.
-    rewrite dg_fac.
-    apply val_inj.
-    simpl.
-    rewrite (ffunE
-               (fun x0 => σ_stdfinset i
-                            (degeneracy_factoring_map f i ht x0))).
+    rewrite (degeneracy_factoring_map_eq f i).
+    apply val_inj => /=.
+    rewrite [in a in _ = a]ffunE.
     unfold σ_stdfinset.
     symmetry.
-    rewrite ffunE. simpl.
+    rewrite ffunE. 
     reflexivity.
   Qed.
   
@@ -400,14 +380,45 @@ End FreelyGenerated.
         | destruct (f (@ord0 n')); auto with arith] | ].
     destruct (@idP (surjective f)) as [surj |not_surj];
       [ exact: (factorization_surj_finset f surj) |].
-
-    move/negP: not_surj => not_surj.
-    rewrite/surjective -not_surj_has in not_surj.
-    have t := gtest_st_spec _ not_surj.
-    set i := (findlast_ord _ not_surj) in t.
-    refine (tlist_rcons _ (δf _ i)).
-    apply: IHm.
-    rewrite /gtest_st in t.
-    move/andP: t => [notin _].
-    exact: facemap_factoring_map f i notin.
+    set P := fun y : ordinal_finType m.+1 =>
+               y \notin [seq f x | x : exp_finIndexType n].
+    unshelve refine (let t := (gtest_st_spec P _) in _ ).
+    {   abstract(move/negP: not_surj => not_surj;
+             now rewrite/surjective -not_surj_has in not_surj). }
+    set i := (findlast_ord _ _) in t; clearbody t i.
+    refine (tlist_rcons (IHm (facemap_factoring_map f i _)) (δf _ i)).
+    abstract(now move/andP: t => [notin _]).
   Defined.    
+
+  Proposition factorization_spec {n m :nat} (f : n ~{ Δ }~> m) :
+    fmap[evaluationFunctor] (factorization f) = f.
+  Proof.
+    induction m.
+    { destruct n.
+      { apply: val_inj; rewrite -ffunP /=.
+        move => [xval xbd]; discriminate xbd. }
+      destruct (f ord0) as [? ybd]; discriminate ybd. }
+    unfold factorization.
+    (* set j := [eta _ ]; clearbody j. *)
+    simpl nat_rect.
+    destruct idP as [p | np];
+      [ exact: factorization_surj_spec |]. 
+    rewrite (@InducedFunctor_Rewrite_rcons _ _ sd_quiverhom).
+    rewrite δf_mapsto_δ.
+    set g0 := facemap_factoring_map f _ _ .
+    set P := (fun y => y \notin [seq f x | x in 'I_n]) in g0 *.
+    set pf : has P (enum 'I_m.+1)
+      := (a in findlast_ord _ a) in g0 *.
+    set gs := (gtest_st_spec P _) in g0 *.
+    set i := (findlast_ord _ _) in gs g0 *.
+    set pf0 := (pf in facemap_factoring_map f i pf) in g0 *.
+    set g : @hom finord n m
+      := Sub g0 (face_factor_monotonic f i pf0).
+    rewrite (IHm g).
+    apply: val_inj.
+    (* set f1 := (a in a ∘ g). *)
+    change (val(AugmentedSimplexCategory.δ i ∘[ Δ ] g)) with
+      (val (AugmentedSimplexCategory.δ i) ∘[stdfinset] (val g)).
+    symmetry.
+    exact: facemap_factoring_eq.
+  Qed.

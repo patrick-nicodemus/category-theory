@@ -272,10 +272,10 @@ Ltac simplex_simpl :=
         | [ |- _ ] => fail_if_unchanged simpl
         end).
 
-Local Create HintDb simplex discriminated.
+Create HintDb simplex discriminated.
 
-Local Hint Extern 0 => simplex_simpl : simplex.
-Local Hint Extern 5 => (fail_if_unchanged ltac:(simpl)) : simplex.
+#[export] Hint Extern 0 => simplex_simpl : simplex.
+#[export] Hint Extern 5 => (fail_if_unchanged ltac:(simpl)) : simplex.
 
 (** Simplicial identities, this time for the simplex category  *)
 (*   δ_j ∘ δ_i = δ_i ∘ δ_(j-1)   ;  i < j *)
@@ -327,7 +327,8 @@ Qed.
 Proposition δSi_σi_eq_id {n : nat} : forall i : 'I_n.+1,
     @compose finord n.+1 n.+2 n.+1 (σ i) (δ (lift ord0 i)) = @Category.id finord (n.+1).
 Proof.
-  intros [ival ibd]; apply val_inj; simpl; unfold AugmentedSimplexCategory.comp;
+  intros [ival ibd]; apply val_inj; simpl;
+    unfold AugmentedSimplexCategory.comp;
     apply eq_ffun; intro x; rewrite ! ffunE; apply val_inj; simpl.
   rewrite {2}/bump; arith_simpl. exact: δSi_σi_eq_id_nat.
 Qed.
@@ -637,4 +638,28 @@ Proof.
         { auto. }
         { rewrite add0n. exact: (leq_trans mon). }
   }
+Qed.
+
+
+Proposition face_factor_monotonic
+   {n m : nat} (f : n ~{ Δ }~> m.+1)
+  (i : 'I_m.+1) (p : i \notin (image f 'I_n))
+      : monotonic (facemap_factoring_map f i p).
+Proof.
+  have mon := valP f.
+  rewrite -(rwP (monotonicP _)) in mon.
+  rewrite -(rwP (monotonicP _)) => x y x_le_y.
+  apply mon in x_le_y.
+  unfold facemap_factoring_map; do 2 rewrite ffunE /=.
+  rewrite -leq_bump unbumpKcond.
+  set k := (a in _ <= a + _).
+  refine (@leq_trans (f y) _ _ x_le_y _).
+  auto with arith.
+Qed.
+
+Proposition forgetful_functorial {n m k}
+  (f : n ~{ Δ }~> m) (g : m ~{ Δ }~> k)
+  : val (g ∘ f) = (val g) ∘[stdfinset] (val f).
+Proof.
+  reflexivity.
 Qed.
