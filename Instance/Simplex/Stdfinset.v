@@ -93,10 +93,11 @@ Qed.
 Definition ord_predn {n : nat} (i : 'I_(n.+2)) : 'I_(n.+1)
   := Sub (predn i) (predn_subproof n i).
 
-Definition ord_upcast {n : nat} (i : 'I_n) : 'I_n.+1.
-Proof.
-  destruct i as [ival ibd]; exists ival; auto with arith.
-Defined.
+Definition ord_upcast {n : nat} (i : 'I_n) : 'I_n.+1 :=
+  widen_ord (leqnSn n) i.
+(* Proof. *)
+(*   destruct i as [ival ibd]; exists ival; auto with arith. *)
+(* Defined. *)
 
 Local Remove Hints ltnW : core.
 
@@ -645,6 +646,3 @@ Proof.
     rewrite size_enum_ord; by destruct x.
   }
 Qed.
-
-
-  
