@@ -721,11 +721,26 @@ We define a sorting algorithm [sort_no_obj] on [seq sd_no_obj].
     | cons e g => sort_no_obj' e (sort_no_obj g)
     end.
 
+  Lemma nat_Si_lt_j (i j : nat) :
+    (i <= j) -> ~ ((i == j) || (i.+1 == j)) -> (i.+1 < j).
+  Proof.
+    move => i_le_j /negP nor.
+    rewrite leq_eqVlt in i_le_j.
+    rewrite negb_or in nor.
+    move/andP : nor => [i_neq_j i_neq_Sj].
+    apply negbTE in i_neq_j.
+    rewrite i_neq_j in i_le_j; simpl in i_le_j.
+    rewrite leq_eqVlt in i_le_j.
+    apply negbTE in i_neq_Sj.
+    rewrite i_neq_Sj in i_le_j; simpl in i_le_j.
+    assumption.
+  Qed.
+
   Proposition sort_no_obj'_preserves_well_formed
     (e : sd_no_obj)
     (f : seq sd_no_obj) (n : nat) (p : well_formed (cons e f) n)
     : well_formed (sort_no_obj' e f) n.
-  Proof.
+  Proof. 
     revert e n p.
     set z' := length f. 
     remember z' as z eqn:Hz.
@@ -744,11 +759,10 @@ We define a sorting algorithm [sort_no_obj] on [seq sd_no_obj].
       { destruct (leqP s0 e0) as [s0_le_e0 | e0_lt_s0 ].
         { simpl. apply/andP; split.
           { auto with arith. }
-          { (* simpl in wf_f. *)
+          { 
             apply: IHz'; simpl in wf_f.
             move/andP: wf_f => [s0_lt_SSn wf_f].
-            rewrite wf_f andbT.
-            now rewrite (ltn_trans e0_lt_Sn).
+            now rewrite wf_f andbT (ltn_trans e0_lt_Sn).
           }
         }
         simpl; rewrite e0_lt_Sn /=. apply: IHz'; exact: wf_f.
@@ -762,29 +776,20 @@ We define a sorting algorithm [sort_no_obj] on [seq sd_no_obj].
             { symmetry in Hz; destruct Hz. simpl; auto with arith. }
             { move/andP: wf_f; case; done. }
           }
-          { simpl. simpl in wf_f. move/negP: neq_e0s0.
-            rewrite leq_eqVlt in s0_le_e0.
-            rewrite negb_or. move/andP => [e0_neq_s0 e0_neq_Ss0].
-            apply negbTE in e0_neq_s0.
-            rewrite eq_sym in e0_neq_s0.
-            rewrite e0_neq_s0 in s0_le_e0; simpl in s0_le_e0.
-            rewrite leq_eqVlt in s0_le_e0.
-            apply negbTE in e0_neq_Ss0.
-            rewrite eq_sym in e0_neq_Ss0.
-            rewrite e0_neq_Ss0 in s0_le_e0.
-            simpl in s0_le_e0.
-            rewrite ltnS in e0_lt_Sn.
-            have lt0 := leq_trans s0_le_e0 e0_lt_Sn.
-            rewrite ltn_predRL lt0 /=.
-            apply: IHz'.
-            apply/andP; split. 
-            { 
-              rewrite (Nat.lt_succ_pred s0.+1);
-                [ apply (leq_trans e0_lt_Sn (leqSpred _))
-                | apply/ltP; assumption ].
+          {
+            simpl in wf_f; move/andP : wf_f => [s0ineq wf_f].
+            rewrite [in bb in ~ ( _ || bb)]eq_sym eq_sym in neq_e0s0.
+            have s0lt := nat_Si_lt_j s0 e0 s0_le_e0 neq_e0s0.
+            simpl; apply/andP; split.
+            {
+              rewrite ltn_predRL. apply (@leq_trans e0); assumption.
             }
             {
-              rewrite (ltn_predK lt0); move/andP: wf_f; by case.
+              apply: IHz'.
+              rewrite (ltn_predK s0ineq) /=.
+              rewrite (ltn_predK s0lt).
+              rewrite ltnS in e0_lt_Sn.
+              now rewrite e0_lt_Sn.
             }
           }
         }
@@ -805,12 +810,11 @@ We define a sorting algorithm [sort_no_obj] on [seq sd_no_obj].
     {
       move => n /andP [e0_lt_predn wf_f].
       destruct f as [| e f].
-      { simpl; now rewrite e0_lt_predn. }
-      have zineq : (length f < z)%coq_nat.
-      { rewrite Hz. done. }
+      { now rewrite /= e0_lt_predn. }
+      have zineq : (length f < z)%coq_nat by rewrite Hz.
       pose IHz' := IHz _ zineq f erefl.
       simpl; destruct e as [b0 | b0].
-      { simpl. rewrite e0_lt_predn /=.
+      { rewrite /= e0_lt_predn /=.
         apply: IHz'.
         exact: wf_f. }
       {
@@ -822,11 +826,11 @@ We define a sorting algorithm [sort_no_obj] on [seq sd_no_obj].
           rewrite ineq /=.
           apply: IHz'.
           apply/andP; split.
-          { simpl. rewrite -ltn_predRL in ineq.
+          { rewrite /= -ltn_predRL in ineq.
             now rewrite (leq_ltn_trans e0_le_b0 ineq). }
           { exact wf_f. }
         }
-        simpl. rewrite e0_lt_predn /=.
+        rewrite /= e0_lt_predn /=.
         apply: IHz'. exact: wf_f.
       }
     }
@@ -890,7 +894,6 @@ We define a sorting algorithm [sort_no_obj] on [seq sd_no_obj].
             }
             rewrite rw /= in s0_le_e0.
             rewrite (ltn_predK s0_le_e0).
-            Check ltnS.
             now rewrite -ltnS.
           }
         }
@@ -918,12 +921,77 @@ We define a sorting algorithm [sort_no_obj] on [seq sd_no_obj].
         { assumption. }
       }
     }
-  Qed.     
+  Qed.    
+
+  (** Therefore, sort_no_obj' sends well-formed sequences n-> m
+      to well-formed sequences n->m *)
+  
+  Proposition sort_no_obj_preserves_well_formed
+    (f : seq sd_no_obj) (n : nat) (p : well_formed f n)
+    : well_formed (sort_no_obj f) n.
+  Proof.
+    revert n p.
+    induction f; [ done |].
+    move => /= n.
+    case: a;
+    move => m /andP [ineq1 wf_f];
+    apply: sort_no_obj'_preserves_well_formed => /=;
+    rewrite ineq1 /=;
+    now apply: IHf.
+  Qed.
+
+  Proposition sort_no_obj_preserves_cod
+    (f : seq sd_no_obj) (n : nat) (p : well_formed f n)
+    : cod (sort_no_obj f) n= cod f n.
+  Proof.
+    revert n p.
+    induction f; [ done |].
+    simpl sort_no_obj.
+    move => n wf.
+    simpl; simpl in wf.
+    destruct a as [a0 | a0];
+      move/andP: wf => [ineq wf_f];
+                       rewrite sort_no_obj'_preserves_cod;
+                       [ now rewrite /= IHf
+                       | rewrite /= ineq /=;
+                           now apply sort_no_obj_preserves_well_formed
+                       | now rewrite /= IHf
+                       | rewrite /= ineq /=;
+                           now apply sort_no_obj_preserves_well_formed
+                       ].
+  Qed.
+
+  (** It is now easy to see that the sort_no_obj operation lifts to an operation on morphisms in free_cat_on_sd. *)
+
+  Definition evaluation_sd_no_obj (n : nat) (f : seq sd_no_obj)
+    (p : well_formed f n) : n ~{ Δ }~> (cod f n).
+  Proof.
+    revert n p.
+    induction f.
+    { exact ( fun n _ => @Category.id finord n). }
+    { move => n.
+      simpl. destruct a as [a0 | a0].
+      { move/andP => [a0_lt_Sn wf_f].
+        refine ((IHf n.+1 wf_f) ∘ _).
+        exact (AugmentedSimplexCategory.δ (Ordinal a0_lt_Sn)).
+      }
+      { move/andP => [a0_lt_predn wf_f].
+        refine ((IHf n.-1 wf_f) ∘ _).
+        destruct n; [ done |].
+        destruct n; [ done |].
+        exact (AugmentedSimplexCategory.σ (Ordinal a0_lt_predn)).
+      }
+    }
+  Defined.
+  Check sort_no_obj'_preserves_well_formed.
+  Proposition sort_no_obj'_preserves_evaluation
+    (n : nat) (e : sd_no_obj) (f : seq sd_no_obj)
+    (p : well_formed (e :: f) n) :
+    evaluation_sd_no_obj n (e :: f) p
+    = evaluation_sd_no_obj
+        n (sort_no_obj' e f)
+        (sort_no_obj'_preserves_well_formed e f n p).
       
-          
-        
-  
-  
   (* Not sure this is as useful as the one which starts from the other
   end.. *)
   Local Fixpoint forget_displacement
