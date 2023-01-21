@@ -490,13 +490,193 @@ To the extent that definitions or proofs can be given using such words, we choos
                 | sA j => i > j
                 end
       end.
-  
 
   Definition sorted_no_obj := pairwise cf_compare.
-  (** This defines what it means for a morphism to be sorted*)
+
   Definition sorted {n m : nat} (f: @hom free_cat_on_sd n m) : bool
     := sorted_no_obj (forget_objects f).
 
+  (** Here n is meant to be interpreted as the domain of the morphism *)
+  Fixpoint well_formed (f : seq sd_no_obj) (n : nat) : bool :=
+    match f with
+    | nil => true
+    | cons e g => match e with
+                  | dA i => (i < n.+1) && well_formed g n.+1
+                  | sA i => (i < n.-1) && well_formed g n.-1
+                  end
+    end.
+  
+  (** This function is "unsafe", it will not give a reasonable answer if f is not well-formed. *) 
+  Fixpoint cod (f : seq sd_no_obj) (n : nat) : nat :=
+    match f with
+    | nil => n
+    | cons e g => match e with
+                  | dA i => cod g n.+1
+                  | sA i => cod g n.-1
+                  end
+    end.
+
+  Proposition free_cat_sd_maps_are_well_formed
+    {n m : nat} (f : n ~{ free_cat_on_sd }~> m)
+    : well_formed (forget_objects f) n.
+  Proof.
+    induction f.
+    { reflexivity. }
+    { cbn. simpl in b. unfold sd_edges in b.
+      destruct j; [ contradiction b |].
+      unfold forget_objects'.
+      destruct (@eqP _ i j) as [i_eq_j | i_neq_j].
+      {
+        (* i = j *)
+        destruct b as [b0].
+        rewrite i_eq_j IHf andbT.
+        exact (valP b0). }
+      {
+        destruct (@eqP _ i j.+2) as [i_eq_SSj | i_neq_SSj].
+        {
+          destruct b as [b0].
+          rewrite i_eq_SSj /= IHf andbT.
+          exact (valP b0).
+        }
+        {
+          contradiction b.
+        }
+      }
+    }
+  Qed.
+
+  (* Proposition forget_obj_helper *)
+  (*   (P : sd_no_obj -> Type) *)
+  (*   : *)
+  (*   P nil -> *)
+  (*     (forall i g, P (cons (dA i) g)) -> *)
+  (*     (forall j g, P (cons (sA j) g)) -> *)
+  (*     forall (n m: nat) *)
+  (*            (f : @hom free_cat_on_sd n m), *)
+  (*       P (forget_objects f). *)
+  (* Proof. *)
+  (*   intros Pnil i g P_dAi_g m f. *)
+  (*   induction f. *)
+  (*   { exact Pnil. } *)
+  (*   { simpl. *)
+  
+  Proposition forget_get_cod_from_dom {n m: nat}
+    (f: @hom free_cat_on_sd n m)
+    : cod (forget_objects f) n = m.
+  Proof.
+    (** Want to show P (forget_objects f), 
+         where P := fun f => cod f n = m  *)
+    induction f.
+    { (* Know P nil *)
+      reflexivity. }
+    {
+      simpl; simpl in b. unfold sd_edges in b.
+      destruct j; [contradiction b |].
+      unfold forget_objects'.
+      { destruct (@eqP _ i j) as [i_eq_j | i_neq_j].
+        { destruct b as [b0].
+          destruct i_eq_j. exact: IHf. }
+        { destruct (@eqP _ i j.+2) as [i_eq_SSj | i_neq_SSj].
+          { destruct b as [b0].
+            { rewrite i_eq_SSj.
+              cbn. exact: IHf. }
+          }
+          contradiction b.
+        }
+      }
+    }
+  Qed.
+
+  Definition lift_wf_to_freecat
+    (n : nat) (f : seq sd_no_obj) (p : well_formed f n)
+    : @hom free_cat_on_sd n (cod f n).
+  Proof.
+    revert n p.
+    induction f.
+    { move => ? ? ; exact tnil. }
+    { move => n p.
+      simpl cod. destruct a as [a0 | a0].
+      { simpl in p.
+        move/andP: p => [a0_le_n wf_f].
+        exact: tcons _ (δf _ (Ordinal a0_le_n)) (IHf _ wf_f). }
+      { simpl in p.
+        move/andP: p => [a0_le_n wf_f].
+        destruct n.
+        { simpl in a0_le_n. rewrite ltn0 in a0_le_n.
+          discriminate a0_le_n. }
+        destruct n.
+        { simpl in a0_le_n. rewrite ltn0 in a0_le_n.
+          discriminate a0_le_n. }
+        exact: tcons _ (σf _ (Ordinal a0_le_n)) (IHf _ wf_f). }
+    }
+  Defined.
+  
+  Proposition lift_wf_forget_obj_linv
+    (n : nat) (f : seq sd_no_obj) (p : well_formed f n)
+    : forget_objects (lift_wf_to_freecat n f p) = f.
+  Proof.
+    revert n p.
+    induction f.
+    { reflexivity. }
+    { move => n p.
+      destruct a as [a0 | a0].
+      { simpl lift_wf_to_freecat.
+        simpl well_formed in p.
+        move/andP: p => [a0_lt_Sn wf_f].
+        simpl forget_objects.
+        { unfold δf.
+          destruct (@eqP _ n n) as [ | n_diseq_n].
+          { simpl; now rewrite IHf. }
+          { now contradiction n_diseq_n. }
+        }
+      }
+      {
+        simpl lift_wf_to_freecat.
+        simpl well_formed in p.
+        move/andP: p => [a0_lt_Sn wf_f].
+        destruct n. { apply False_rect.
+                      rewrite ltn0 in a0_lt_Sn.
+                      discriminate a0_lt_Sn. }
+        destruct n. { apply False_rect.
+                      rewrite ltn0 in a0_lt_Sn.
+                      discriminate a0_lt_Sn. }
+        simpl.
+        unfold σf.
+        destruct (@eqP _ n.+2 n).
+        { now contradiction (Plus.n_SSn_stt n). }
+        { destruct (@eqP _ n.+2 n.+2) as [| n_diseq_n].
+          { now rewrite IHf. }
+          { now contradiction n_diseq_n. }
+        }
+      }
+    }
+  Qed.
+
+  (** High level proof strategy:
+      We have constructed a functor [evaluationFunctor] from    [InductivelyGeneratedSimplexCat] to [finord] which sends each formal path of face and degeneracy maps in the simplex category to its composite. We would like to show that this functor is an equivalence of categories. It would be sufficient to show that it is fully faithful, as it is an isomorphism on homsets. We have shown that the map on hom-sets is surjective, by constructing a canonical factorization of each morphism in the simplex category into faces and degeneracies, [factorization], and verified that it is a section of the evaluation map in [factorization_spec].
+
+It remains to prove that the evaluation map is injective, that is, if two morphisms in [free_cat_on_sd] map to the same morphism in [finord], they are related in [InductivelyGeneratedSimplexCat], i.e., related by the smallest equivalence relation containing [basic_morphism_rel] such that composition respects the equivalence relation.
+
+An [sd_no_obj] is either [d i] or [s i], where [i] is any natural number. In what follows, we will replace morphisms in free_cat_on_sd with sequences from [sd_no_obj] because removing the rigid type structure from paths in the quiver makes them easier to work with and manipulate.
+
+If [f : seq sd_no_obj] and [n :nat], we define a criterion for [f] to be [well_formed] if it is meant to be interpreted as a morphism in [hom free_cat_on_sd] with domain [n]. We also give a function [cod], which, given [f : seq sd_no_obj] and [n], returns [m] which is supposed to be the codomain of the morphism [f].
+
+1. If [f : seq sd_no_obj] and [n : nat], and [f] is [well_formed], then there is a morphism [lift_wf_to_freecat f] in [@hom free_cat_on_sd n (cod f n)] which is in the fiber of [forget_objects] over [f] ( [lift_wf_forget_obj_linv] ).
+
+We define a sorting algorithm [sort_no_obj] on [seq sd_no_obj].
+
+2. If [f : seq sd_no_obj]] starting at [n] is [well_formed], then [sort_no_obj f] starting at [n] is [well_formed]. ([sort_no_obj'_preserves_well_formed]) Moreover they have the same [cod]. ([sort_no_obj'_preserves_cod])
+
+3. It follows that there is a function [sort : @hom free_on_ord n m -> @hom free_on_ord n m] given by forgetting the objects of [f], sorting by [sort_no_obj], and lifting this along [forget_objects] using [lift_wf_forget_obj]. 
+
+4. Two morphisms [f], [g] in [@hom free_on_ord n m] become equal in [InductivelyGeneratedSimplexCat] only if [sort f = sort g].
+
+5. If [f], [g] are two [well_formed] sequences in sd_no_obj rooted at [n] with [cod f = cod g = m], then [f] and [g] denote the same morphism in [finord] only if [sort f] = [sort g].
+
+6. If [sort f = sort g] then their lifts are related in [InductivelyGeneratedSimplexCat]. (It suffices to show that [f] is related to the lift of [sort f].
+
+ *)
+  
   Fixpoint sort_no_obj' (e : sd_no_obj)
     (f: seq sd_no_obj) : seq sd_no_obj :=
     match f with
@@ -541,6 +721,211 @@ To the extent that definitions or proofs can be given using such words, we choos
     | cons e g => sort_no_obj' e (sort_no_obj g)
     end.
 
+  Proposition sort_no_obj'_preserves_well_formed
+    (e : sd_no_obj)
+    (f : seq sd_no_obj) (n : nat) (p : well_formed (cons e f) n)
+    : well_formed (sort_no_obj' e f) n.
+  Proof.
+    revert e n p.
+    set z' := length f. 
+    remember z' as z eqn:Hz.
+    revert f z' Hz.
+    induction z as [z IHz] using lt_wf_ind => f.
+    simpl; simpl in IHz.
+    move => Hz.
+    case => [e0 | e0].
+    { move => n /= /andP [e0_lt_Sn wf_f].
+      destruct f; [ now rewrite /= e0_lt_Sn |].
+      have zineq: (length f < z)%coq_nat.
+      { apply/ltP; now rewrite Hz. }
+      pose IHz' := IHz (length f) zineq f erefl.
+      simpl sort_no_obj'.
+      destruct s as [s0 | s0].
+      { destruct (leqP s0 e0) as [s0_le_e0 | e0_lt_s0 ].
+        { simpl. apply/andP; split.
+          { auto with arith. }
+          { (* simpl in wf_f. *)
+            apply: IHz'; simpl in wf_f.
+            move/andP: wf_f => [s0_lt_SSn wf_f].
+            rewrite wf_f andbT.
+            now rewrite (ltn_trans e0_lt_Sn).
+          }
+        }
+        simpl; rewrite e0_lt_Sn /=. apply: IHz'; exact: wf_f.
+      }
+      { 
+        destruct (@leqP s0 e0) as [s0_le_e0 | e0_lt_s0].
+        { destruct (@idP ((e0 == s0) || (e0 == s0.+1))) as [| neq_e0s0].
+          {
+            destruct f; [ done |].
+            apply: (IHz _ _ f erefl).
+            { symmetry in Hz; destruct Hz. simpl; auto with arith. }
+            { move/andP: wf_f; case; done. }
+          }
+          { simpl. simpl in wf_f. move/negP: neq_e0s0.
+            rewrite leq_eqVlt in s0_le_e0.
+            rewrite negb_or. move/andP => [e0_neq_s0 e0_neq_Ss0].
+            apply negbTE in e0_neq_s0.
+            rewrite eq_sym in e0_neq_s0.
+            rewrite e0_neq_s0 in s0_le_e0; simpl in s0_le_e0.
+            rewrite leq_eqVlt in s0_le_e0.
+            apply negbTE in e0_neq_Ss0.
+            rewrite eq_sym in e0_neq_Ss0.
+            rewrite e0_neq_Ss0 in s0_le_e0.
+            simpl in s0_le_e0.
+            rewrite ltnS in e0_lt_Sn.
+            have lt0 := leq_trans s0_le_e0 e0_lt_Sn.
+            rewrite ltn_predRL lt0 /=.
+            apply: IHz'.
+            apply/andP; split. 
+            { 
+              rewrite (Nat.lt_succ_pred s0.+1);
+                [ apply (leq_trans e0_lt_Sn (leqSpred _))
+                | apply/ltP; assumption ].
+            }
+            {
+              rewrite (ltn_predK lt0); move/andP: wf_f; by case.
+            }
+          }
+        }
+        simpl.
+        simpl in wf_f.
+          move/andP: wf_f => [s0_lt_n wf_f].
+        apply/andP; split.
+        {
+          rewrite ltn_predRL.
+          rewrite (ltn_predK e0_lt_s0).
+          exact: s0_lt_n.
+        }
+        apply IHz'; apply/andP; split.
+        {  auto with arith. }
+        { now rewrite (ltn_predK s0_lt_n). }
+      }
+    }
+    {
+      move => n /andP [e0_lt_predn wf_f].
+      destruct f as [| e f].
+      { simpl; now rewrite e0_lt_predn. }
+      have zineq : (length f < z)%coq_nat.
+      { rewrite Hz. done. }
+      pose IHz' := IHz _ zineq f erefl.
+      simpl; destruct e as [b0 | b0].
+      { simpl. rewrite e0_lt_predn /=.
+        apply: IHz'.
+        exact: wf_f. }
+      {
+        destruct (@leqP e0 b0) as [e0_le_b0 | b0_lt_e0].
+        {
+          simpl. simpl in wf_f.
+          move/andP: wf_f => [ineq wf_f].
+          rewrite ltn_predRL in ineq.
+          rewrite ineq /=.
+          apply: IHz'.
+          apply/andP; split.
+          { simpl. rewrite -ltn_predRL in ineq.
+            now rewrite (leq_ltn_trans e0_le_b0 ineq). }
+          { exact wf_f. }
+        }
+        simpl. rewrite e0_lt_predn /=.
+        apply: IHz'. exact: wf_f.
+      }
+    }
+  Qed.
+
+  Proposition sort_no_obj'_preserves_cod
+    (e : sd_no_obj)
+    (f : seq sd_no_obj) (n : nat) (p : well_formed (cons e f) n)
+    : cod (sort_no_obj' e f) n = cod (cons e f) n.
+  Proof.
+    revert e n p.
+    set z' := length f. 
+    remember z' as z eqn:Hz.
+    revert f z' Hz.
+    induction z as [z IHz] using lt_wf_ind => f.
+    simpl; simpl in IHz.
+    move => Hz.
+    destruct f;    
+      [by case => [e0 | e0] n /andP [e0ineq wf_f] |].
+    have zineq : (length f < z)%coq_nat by (apply/ltP; rewrite Hz).
+    pose IHz' := IHz _ zineq f erefl.
+    move => [e0 | e0] n.
+    { move/andP => [e0_lt_Sn wf_sf].
+      destruct s as [s0 | s0].
+      { simpl. destruct (@leqP s0 e0) as [s0_le_s0 | e0_lt_s0].
+        { simpl. apply: (IHz' (dA e0)).
+          simpl in wf_sf.
+          apply/andP; split.
+          { auto with arith. }
+          { move/andP:wf_sf; by case. }
+        }
+        simpl.
+        simpl in wf_sf; move/andP : wf_sf => [e0s0ineq wf_f].
+        apply: (IHz' (dA s0)).
+        apply/andP; now split.
+      }
+      {
+        simpl.
+        simpl in wf_sf; move/andP : wf_sf => [s0_lt_n wf_f].
+        
+        destruct (@leqP s0 e0) as [s0_le_e0 | s0_gt_e0].
+        { 
+          destruct (@idP ((e0 == s0) || (e0 == s0.+1 ))) as [| e0_neq_s0].
+          { 
+            destruct f; [ done |].
+            unshelve refine (IHz _ _ f erefl s _ _); [ | done].
+            rewrite Hz; apply/ltP; simpl; auto with arith.               
+          }
+          {
+            have IHz0 := (IHz _ zineq f erefl (dA e0.-1) n.-1).
+            rewrite (ltn_predK s0_lt_n) in IHz0. 
+            simpl; apply IHz0.
+            rewrite wf_f andbT.
+            rewrite leq_eqVlt in s0_le_e0.
+            have rw : (s0 == e0 = false). {
+              apply: negbTE.
+              rewrite eq_sym.
+              move/negP: e0_neq_s0.
+              rewrite negb_or.
+              by case/andP => e0_ne_s0 e0_ne_Ss0.
+            }
+            rewrite rw /= in s0_le_e0.
+            rewrite (ltn_predK s0_le_e0).
+            Check ltnS.
+            now rewrite -ltnS.
+          }
+        }
+        {
+          simpl.
+          have IHz0 := IHz _ zineq f erefl (dA e0) n.-1.
+          rewrite (ltn_predK s0_lt_n) in IHz0.
+          apply IHz0.
+          rewrite wf_f andbT.
+          exact: ltn_trans s0_gt_e0 s0_lt_n.
+        }
+      }
+    }
+    {
+      move/andP => [e0_lt_predn wf_sf].
+      simpl.
+      destruct s as [s0 | s0].
+      { apply IHz'; exact wf_sf. }
+      { simpl.
+        simpl in wf_sf.
+        move/andP: wf_sf => [s0_lt_predpredn wf_sf].
+        destruct (@leqP e0 s0) as [e0_le_s0 | e0_gt_s0];
+          apply: IHz'; rewrite wf_sf andbT.
+        { exact: leq_ltn_trans e0_le_s0 s0_lt_predpredn. }
+        { assumption. }
+      }
+    }
+  Qed.     
+      
+          
+        
+  
+  
+  (* Not sure this is as useful as the one which starts from the other
+  end.. *)
   Local Fixpoint forget_displacement
     (m :nat) (l : seq sd_no_obj) : nat
     := match l with
@@ -551,6 +936,8 @@ To the extent that definitions or proofs can be given using such words, we choos
                       end
        end.
 
+  
+  
   Proposition sort_no_obj'_dom_cod {n m k: nat}
     (e : @edges sd_quiver n k) (f : @hom free_cat_on_sd k m)
     : n =forget_displacement m
@@ -732,261 +1119,15 @@ To the extent that definitions or proofs can be given using such words, we choos
         contradiction e.
       } 
     }            
-  Qed.           
-                    
-            
-            
-              
+  Qed.
 
-              
-            
-                
-               
-                  
-
-              simpl.
-              (* f : j+1 -> n *)
-              (* so e0 should be from j -> j.+1 *)
-              (* Currently dA e0 : i -> i.+1 *)
-              (* i = 
-              set e' := 
-            
-            
-            
-            
-            
-            
-
-            Check IHz (tlist_length f).
-
-            rewrite -IHz.
-
-
-      
-      
-      
-      
-      
-
-    
-    
-    induction f as [| i j b f IHf ].
-    { simpl. move => n e.
-      unfold sd_edges in e.
-      destruct m; [ contradiction |].
-      cbn. change (eqn n m) with (n == m). set eq_nm := n == m.
-      destruct (@eqP _ n m) as [eq_nm' | diseq_nm].
-      { destruct e as [e0]; exact eq_nm'. }
-      { unfold eq_nm.
-        change (eqn n m.+2) with (n == m.+2).
-        destruct (@eqP _ n m.+2) as [eq_nSSm | diseq_nSSm].
-        { destruct e as [e0]; exact eq_nSSm. }
-        { contradiction e. }
-      }
-    }
-    {
-      simpl. move => n e.
-      unfold sd_edges in e. 
-      destruct i; [ contradiction | ].
-      unfold forget_objects'.
-      simpl.
-      destruct (@eqP _ n i) as [eq_ni | diseq_ni].
-      { destruct e as [e0]. simpl in b. unfold sd_edges in b.
-        destruct j; [ contradiction |].
-        simpl. 
-        destruct (@eqP _ i.+1 j) as [Si_eq_j | Si_neq_j].
-        { (* i.+1 = j *)
-          destruct b as [b0].
-          destruct (e0 < b0) as [e0_lt_b0 | e0_nlt_b0].
-          {
-            simpl.
-            have a := IHf _ (δf _ b0).
-            rewrite forget_obj_face in a.
-            now rewrite -a -Si_eq_j eq_ni.
-          }
-          { (* e0 >= b0 *)
-            simpl.
-            destruct eq_ni, Si_eq_j.
-            have a := IHf _ (δf _ (ord_upcast e0)).
-            rewrite forget_obj_face in a.
-            simpl in a.
-            now rewrite -a.
-          }
-        }
-        {  
-          destruct (@eqP _ i.+1 j.+2) as [Si_eq_SSj | Si_neq_SSj ].
-          { 
-            destruct b as [b0].
-            (* Check leqP. *)
-            destruct (leqP b0 e0) as [b0_leq_e0 | e0_lt_b0 ].
-            {
-              set eqor := ((_ == _) || (_ == _)).
-              destruct eqor.
-              { (* e0 = b0 or e0 = b0.+1 *)
-                simpl.
-                
-                destruct f.
-                {
-                  simpl. apply succn_inj in Si_eq_SSj.
-                  rewrite -Si_eq_SSj; exact eq_ni.
-                }
-                { 
-                  simpl.
-                  have
-                  rewrite -IHf.
-                
-                
-              destruct ((val e0 == val b0) || (val e0 == b0.+1)).
-              
-            
-          
-            [ contradiction Si_neq_j; apply: succn_inj |] .
-      
-  
-  Proposition sort_no_obj'_dom_cod {n m : nat} (f : @hom free_cat_on_sd n m)
-    : match forget_objects f with
-      | nil => n = m
-      | cons e f' => n = forget_displacement m
-                                (sort_no_obj' e f')
-      end.
-  Proof.
-    induction f; [ reflexivity |].
-    cbn. 
-    unfold forget_objects'.
-    destruct j; [ contradiction |].
-    simpl in b.
-    destruct (@eqP _ i j).
-    { (* i = j *)
-       destruct b. 
-      destruct (forget_objects f).
-      { (* f is nil (tnil) *)
-        unfold sort_no_obj'. simpl.
-        set g := forget_objects f in IHf *.
-        now destruct g, e, IHf. }
-      { (* f is a cons *)
-        
-    
-
-    { 
-
-    
-      { (* i = j *)
-        destruct b.
-        simpl.
-        simpl sort_no_obj'.
-        
-      
-
-    
-    simpl sort_no_obj'.
-    
-    
-  
-                         
-  (* The sorting algorithm sends morphisms in free_cat_on_sd to
-     morphisms in free_cat_on_sd. *)
-  Definition sort_no_obj'_lift {n m : nat}
-    (f : @hom free_cat_on_sd n m)
-    : @hom free_cat_on_sd n m.
-  Proof.
-    destruct f; [ exact tnil |].
-    set e0 := forget_objects' e.
-    set f0 := forget_objects f.
-    set sf := sort_no_obj' e0 f0.
-    remember sf as sf' eqn:heqnsf.
-    induction sf'.
-    { have a : i = m.
-      { 
-
-      
-      unfold sort_no_obj' in sf.
-      
-    
-    simpl in e. unfold sd_edges in e.
-    destruct j; [ contradiction e |].
-        
-    set sf := forget_objects f; 
-    induction sf'.
-    { induction f.
-      { exact tnil. }
-      { simpl in sf. destruct j; [contradiction |].
-    
-  
-  
-  Definition sort_no_obj'_lift {n m : nat}
-    (f : @hom free_cat_on_sd n m)
-    : @hom free_cat_on_sd n m.
-  Proof.
-    induction f as [| i j e f]; [exact tnil |].
-    destruct j; [ contradiction |].
-    set sf := forget_objects f; unfold forget_objects in sf.
-    destruct f as [ | i' j' e2 g]; 
-      [ exact (tlist_singleton e) |].
-
-    cbn in sf. 
-    destruct j'; [ contradiction |].
-    destruct (eqn i' j') in sf.
-    (* set eqn_ij := eqn i' j' in sf. *)
-    set (eq_reflect := (@eqP _ i' j')).
-    change (eqn i' j') with (i' == j') in sf.
-    set ij := i' == j' in eq_reflect, sf.
-    
-    destruct eq_reflect.
-    { 
-
-    
-
-    change (@Equality.Pack nat nat_eqMixin) with eqn.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-    set eq_i'j' := i' == j' in sf.
-
-    
-    simpl in sf.
-    
-    unfold tlist'_rec, tlist'_rect in sf.
-    
-    unfold forget_objects in sf.
-    simpl in sf.
-    simpl in sf.    
-    
-    
-    remember sf as sf' eqn:Heqsf.
-    induction s.
-    { 
-      
-    destruct f as [ | i j e f]; [exact tnil |].
-
-    set sf := sort_no_obj' e (forget_objects f).
-
-  Proposition sorting_lifts_to_morphisms' {n m : nat}
-    (f : @hom free_cat_on_sd n m)
-    : { g : @hom free_cat_on_sd n m &
-              sort_no_obj' (forget_objects f) = forget_objects g }.
-  Proof.
-    (* TODO *)
-    Abort.
+  (* Proposition sorting_lifts_to_morphisms' {n m k: nat} *)
+  (*   (f : @hom free_cat_on_sd n m) *)
+  (*   : { g : @hom free_cat_on_sd n m & *)
+  (*             sort_no_obj' (forget_objects f) = forget_objects g }. *)
+  (* Proof. *)
+  (*   (* TODO *) *)
+  (*   Abort. *)
 
   Proposition sorting_lifts_to_morphisms {n m : nat}
     (f : @hom free_cat_on_sd n m)

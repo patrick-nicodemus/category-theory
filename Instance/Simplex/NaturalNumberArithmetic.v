@@ -167,9 +167,6 @@ Ltac arith_simpl :=
         | [|- context[?X.+1.-1] ] => change X.+1.-1 with X
         | [ H : is_true ( ?x < 0 ) |- _ ] => rewrite ltn0 in H; discriminate
          end).
-
-Ltac arith_contr :=
-           
      
 Global Hint Extern 0 => arith_simpl : arith.
 Global Hint Extern 10 (_ <= _) => (eapply leq_trans) : arith.
