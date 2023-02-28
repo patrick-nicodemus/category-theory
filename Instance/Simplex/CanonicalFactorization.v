@@ -983,14 +983,35 @@ We define a sorting algorithm [sort_no_obj] on [seq sd_no_obj].
       }
     }
   Defined.
-  Check sort_no_obj'_preserves_well_formed.
+
   Proposition sort_no_obj'_preserves_evaluation
     (n : nat) (e : sd_no_obj) (f : seq sd_no_obj)
     (p : well_formed (e :: f) n) :
-    evaluation_sd_no_obj n (e :: f) p
-    = evaluation_sd_no_obj
-        n (sort_no_obj' e f)
-        (sort_no_obj'_preserves_well_formed e f n p).
+    evaluation_sd_no_obj n (e :: f) p =
+      match sort_no_obj'_preserves_cod e f n p
+      with
+      | erefl =>
+          evaluation_sd_no_obj
+            n (sort_no_obj' e f)
+            (sort_no_obj'_preserves_well_formed e f n p)
+      end.
+  Proof.
+    revert e n p.
+    set z' := length f. 
+    remember z' as z eqn:Hz.
+    revert f z' Hz.
+    induction z as [z IHz] using lt_wf_ind => f. 
+    cbn zeta.
+    move => Hz e n p.
+    destruct e as [e0 | e0].
+    { simpl evaluation_sd_no_obj.
+      set j := elimTF andP p.
+      destruct j as [e0_lt wf_f]; fold well_formed in wf_f.
+      
+    
+    
+    Abort.
+  
       
   (* Not sure this is as useful as the one which starts from the other
   end.. *)
