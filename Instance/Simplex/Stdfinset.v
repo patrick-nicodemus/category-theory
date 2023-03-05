@@ -1,5 +1,7 @@
 Require Import Category.Lib.
 Require Import Category.Theory.Category.
+Require Import Instance.Simplex.NaturalNumberArithmetic.
+
 From Hammer Require Import Hammer Tactics.
 Require Import Arith.
 
@@ -77,6 +79,41 @@ Definition δ_stdfinset {n : nat} (i : 'I_(n.+1))
 Lemma σ_subproof (n : nat) (i : 'I_(n.+1)) (j : 'I_(n.+2))
   : unbump i j < n.+1.
 Proof.
+  rewrite /unbump.
+  destruct (@idP (i < j)).
+  {
+    arith_simpl.
+    
+    destruct (ltnP i j).
+    {
+      have t := valP j.
+      auto with arith.
+      
+      time
+        
+      
+      j < n.+2  ->  j - 1 < n.+1 
+
+      hammer.
+      
+      sauto.
+    Print Bool.reflect.
+    rdestruct (i < j)
+    Set Printing All.
+   
+    (* 
+      Idea: Intelligent case analysis.
+            Whenever we have a 
+     *)
+
+    sauto lq:on. }
+  
+  
+  hammer.
+
+           
+  hammer.
+  
   sfirstorder.
 Qed.
 
@@ -254,6 +291,12 @@ Proposition nltm_not_injective {n m : nat} (f : 'I_(m.+1)^n) (p : m.+1 < n)
     rewrite -ltnNge ltnS. rewrite -(card_ord m.+1) -(card_ord n).
     apply (leq_card f); by apply/injectiveP.
 Qed.
+
+(** TODO - come back to this proof later and see if it can be edited shorter. The main sources of bureaucratic overhead in these proofs are boolean reflection stuff and reducing arguments about ordinals in 'I_n to arguments about natural numbers *)
+Proposition not_injective_hitstwice {n m : nat} (f : 'I_(m.+1)^n) :
+  (injectiveb f) <-> (hitstwice f =1 xpred0).
+Proof.
+
 
 (** TODO - come back to this proof later and see if it can be edited shorter. The main sources of bureaucratic overhead in these proofs are boolean reflection stuff and reducing arguments about ordinals in 'I_n to arguments about natural numbers *)
 Proposition not_injective_hitstwice {n m : nat} (f : 'I_(m.+1)^n) :

@@ -6,8 +6,10 @@ Require Import mathcomp.ssreflect.fintype.
 Require Import mathcomp.ssreflect.finfun.
 Require Import mathcomp.ssreflect.ssrnat.
 Require Import mathcomp.ssreflect.eqtype.
- 
-Global Create HintDb arith discriminated.
+
+(* Create HintDb arith discriminated. *)
+(* Create HintDb arith_rewr discriminated. *)
+Create HintDb brefl discriminated.
 (* Check leq_trans. *)
 (* leq_trans *)
 (*      : forall n m p : nat, m <= n -> n <= p -> m <= p *)
@@ -26,13 +28,13 @@ Ltac ltn_predKhint :=
   | [ H : is_true (S ?Y <= ?X) |- ?X.-1.+1 = ?X ] => exact: (@ltn_predK Y X H)
   end.
 
-Global Hint Extern 2 => leq_transleft : arith.
-Global Hint Extern 2 => leq_transright : arith.
-Global Hint Extern 2 => ltn_predKhint : arith.
-Global Hint Resolve leq_trans : arith.
-Global Hint Resolve ltn_predK : arith. 
-Global Hint Resolve ltn_ord : arith.
-Global Hint Resolve leq_addr : arith.
+#[export] Hint Extern 2 => leq_transleft : arith.
+#[export] Hint Extern 2 => leq_transright : arith.
+#[export] Hint Extern 2 => ltn_predKhint : arith.
+#[export] Hint Resolve leq_trans : arith.
+#[export] Hint Resolve ltn_predK : arith. 
+#[export] Hint Resolve ltn_ord : arith.
+#[export] Hint Resolve leq_addr : arith.
 
 (* This hint tends to lead immediately to infinite loops, as repeatedly applying
    ltnW makes the goal evolve like
@@ -76,9 +78,31 @@ Proof.
   exact: nlek_nm1lek.
 Qed.
 
+(* #[export] Hint Rewrite subn1 : arith_rewr. *)
+
+Definition rwP_leP (n m : nat) :
+  (n <= m)%coq_nat <-> n <= m := rwP (@leP n m).
+
+#[export] Hint Rewrite <- rwP_leP : brefl.
+
+Proposition prednlek_nleSk (n k : nat) : n.-1 <= k <-> n <= k.+1.
+Proof.
+  split; move => t.
+  {
+    rewrite -ltnS in t.
+    now apply (leq_trans (leqSpred n)).
+  }
+  destruct n; done.
+Qed.
+  
+    
+    
+
 Proposition nlek_nm1lekm1 : forall (n m : nat), (n <= m) -> (n.-1 <= m.-1).
 Proof.
-  intros n m ineq; do 2 ! rewrite -subn1. exact: leq_sub. 
+  intros n m.
+  autorewrite with brefl.
+  exact: le_pred.
 Qed.
 
 Global Hint Resolve nlek_nm1lek : arith.
@@ -98,20 +122,30 @@ Proof.
   apply (@leq_trans k n (m + k)); auto with arith.
 Qed.
 
+Check andP.
+
+Definition rwP_andP (P Q : bool) : P /\ Q <-> P && Q := rwP (@andP P Q).
+
+#[export] Hint Rewrite <- rwP_andP : brefl.
+
 Proposition nltm_nneqm : forall n m : nat, n < m -> n !=m.
 Proof.
   intros n m.
   rewrite ltn_neqAle.
-  move/andP; by case.
+  autorewrite with brefl.
+  tauto.
+Qed.
+
+Proposition neq_sym (A : eqType) (x y : A) : x != y <-> y != x.
+Proof.
+  now rewrite eq_sym.
 Qed.
 
 Proposition nltm_mneqn : forall n m : nat, m < n -> n !=m.
 Proof.
-  intros n m.
-  rewrite ltn_neqAle; intro H.
-  apply (rwP andP) in H; destruct H as [ neq _].
-  apply/eqP. intro H; rewrite H in neq; apply negbTE in neq; rewrite eq_refl in neq.
-  discriminate.
+  move => n m.
+  rewrite neq_sym.
+  apply: nltm_nneqm.
 Qed.
 
 Global Hint Resolve nltm_nltmk : arith.
@@ -137,6 +171,36 @@ Global Hint Resolve nltm_mneqn : arith.
    easy to add new "hints" to the repeat-match-goal block this way.
  *)
 
+(* #[export] Hint Rewrite add0n : arith_rewr. *)
+(* #[export] Hint Rewrite addn0 : arith_rewr. *)
+(* #[export] Hint Rewrite addn1 : arith_rewr. *)
+(* #[export] Hint Rewrite subn1 : arith_rewr. *)
+(* #[export] Hint Rewrite subn0 : arith_rewr. *)
+(* #[export] Hint Rewrite leq_add2l : arith_rewr. *)
+(* #[export] Hint Rewrite ltnS : arith_rewr. *)
+
+
+(* Idea: want a version of auto with only partial backtracking, so a
+   theorem can be added in a greedy or non-greedy way.
+
+   Also want it to be able to be applied to hypotheses.
+
+   Basically want pattern-search.
+
+   Auto isn't good enough because it doesn't work on hypotheses and
+   its backtracking is inflexible (?).
+
+   Subgoals which are variants of already attempted subgoals.
+
+   Atoms which are generalizations of given atoms.
+
+   An ltac script isn't perfect because you have to add to it
+   manually.  Instead, want an Ltac2 data structure.
+
+Kinds of searching:
+
+1. All terms in the database unifiable with a given atom P(t1, ... tn)
+where there may be free variables.  *)
 Ltac arith_simpl :=
   do ! (match goal with
         |[ |- context[addn _ _] ] => fail_if_unchanged ltac:(rewrite add0n)
@@ -145,7 +209,8 @@ Ltac arith_simpl :=
         |[ |- context[addn _ _] ] => fail_if_unchanged ltac:(rewrite add1n)
         |[ |- context[subn _ _] ] => fail_if_unchanged ltac:(rewrite subn1)
         |[ |- context[subn _ _] ] => fail_if_unchanged ltac:(rewrite subn0)
-        |[ |- context[subn _ _] ] => fail_if_unchanged ltac:(rewrite leq_add2l)
+        |[ |- context[subn _ _] ] =>
+           fail_if_unchanged ltac:(rewrite leq_add2l)
         |[ |- context[(?x < ?n.+1)] ] => fail_if_unchanged ltac:(rewrite leq_add2l)
         |[ H : lt ?x ?y |- _ ] =>
             apply (rwP ltP) in H
@@ -198,7 +263,14 @@ Proposition δi_δj_nat :
 Proof.
   intros i j ineq x; simpl.
   rewrite [bump i (bump _ _)]bumpC; unfold unbump.
-  destruct j; [done |]; arith_simpl; simpl.
+  destruct j; [done |].
+  move: ineq.
+  time arith_simpl.
+  time autorewrite with arith_rewr.
+
+
+
+  simpl.
   destruct (@leqP i j) as [ineq' | _]; [ | discriminate ]; arith_simpl.
   rewrite {4}/bump.
   rewrite ineq'; by arith_simpl.
