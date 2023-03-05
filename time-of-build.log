@@ -1,0 +1,582 @@
+COQC Lib/Foundation.v
+COQC Lib/IList.v
+COQC Instance/Lambda/Ltac.v
+COQC Instance/Simplex/NaturalNumberArithmetic.v
+COQC Lib/FMapExt.v
+Lib/Foundation.vo (real: 0.33, user: 0.11, sys: 0.22, mem: 128972 ko)
+COQC Lib/Setoid.v
+Instance/Lambda/Ltac.vo (real: 0.34, user: 0.12, sys: 0.22, mem: 126400 ko)
+File "./Instance/Simplex/NaturalNumberArithmetic.v", line 7, characters 0-41:
+Warning: Notation "_ + _" was already used in scope nat_scope.
+[notation-overridden,parsing]
+File "./Instance/Simplex/NaturalNumberArithmetic.v", line 7, characters 0-41:
+Warning: Notation "_ - _" was already used in scope nat_scope.
+[notation-overridden,parsing]
+File "./Instance/Simplex/NaturalNumberArithmetic.v", line 7, characters 0-41:
+Warning: Notation "_ <= _" was already used in scope nat_scope.
+[notation-overridden,parsing]
+File "./Instance/Simplex/NaturalNumberArithmetic.v", line 7, characters 0-41:
+Warning: Notation "_ < _" was already used in scope nat_scope.
+[notation-overridden,parsing]
+File "./Instance/Simplex/NaturalNumberArithmetic.v", line 7, characters 0-41:
+Warning: Notation "_ >= _" was already used in scope nat_scope.
+[notation-overridden,parsing]
+File "./Instance/Simplex/NaturalNumberArithmetic.v", line 7, characters 0-41:
+Warning: Notation "_ > _" was already used in scope nat_scope.
+[notation-overridden,parsing]
+File "./Instance/Simplex/NaturalNumberArithmetic.v", line 7, characters 0-41:
+Warning: Notation "_ <= _ <= _" was already used in scope nat_scope.
+[notation-overridden,parsing]
+File "./Instance/Simplex/NaturalNumberArithmetic.v", line 7, characters 0-41:
+Warning: Notation "_ < _ <= _" was already used in scope nat_scope.
+[notation-overridden,parsing]
+File "./Instance/Simplex/NaturalNumberArithmetic.v", line 7, characters 0-41:
+Warning: Notation "_ <= _ < _" was already used in scope nat_scope.
+[notation-overridden,parsing]
+File "./Instance/Simplex/NaturalNumberArithmetic.v", line 7, characters 0-41:
+Warning: Notation "_ < _ < _" was already used in scope nat_scope.
+[notation-overridden,parsing]
+File "./Instance/Simplex/NaturalNumberArithmetic.v", line 7, characters 0-41:
+Warning: Notation "_ * _" was already used in scope nat_scope.
+[notation-overridden,parsing]
+Lib/Setoid.vo (real: 0.22, user: 0.16, sys: 0.06, mem: 185628 ko)
+COQC Lib/Tactics.v
+Lib/IList.vo (real: 0.60, user: 0.35, sys: 0.25, mem: 361712 ko)
+Lib/Tactics.vo (real: 0.12, user: 0.08, sys: 0.03, mem: 130028 ko)
+COQC Lib/Datatypes.v
+Instance/Simplex/NaturalNumberArithmetic.vo (real: 0.88, user: 0.49, sys: 0.39, mem: 409820 ko)
+Lib/Datatypes.vo (real: 0.63, user: 0.53, sys: 0.10, mem: 353284 ko)
+COQC Lib.v
+Lib.vo (real: 0.11, user: 0.09, sys: 0.01, mem: 126372 ko)
+COQC Theory/Category.v
+COQC Lib/TList.v
+COQC Theory/Coq/Semigroup.v
+COQC Instance/Lambda/Ty.v
+COQC Lib/NETList.v
+COQC Theory/Coq/Functor.v
+COQC Theory/Coq/Foldable.v
+Theory/Coq/Foldable.vo (real: 0.19, user: 0.16, sys: 0.02, mem: 128996 ko)
+Theory/Coq/Functor.vo (real: 0.19, user: 0.10, sys: 0.08, mem: 139112 ko)
+COQC Theory/Coq/Map.v
+Theory/Coq/Semigroup.vo (real: 0.20, user: 0.12, sys: 0.07, mem: 129928 ko)
+COQC Theory/Coq/Monoid.v
+Theory/Coq/Monoid.vo (real: 0.18, user: 0.03, sys: 0.14, mem: 126544 ko)
+COQC Theory/Coq/Applicative.v
+Theory/Category.vo (real: 0.46, user: 0.29, sys: 0.16, mem: 353132 ko)
+COQC Theory/Morphisms.v
+COQC Structure/Terminal.v
+Instance/Lambda/Ty.vo (real: 0.49, user: 0.32, sys: 0.17, mem: 362480 ko)
+COQC Construction/Coproduct.v
+Theory/Coq/Applicative.vo (real: 0.20, user: 0.18, sys: 0.01, mem: 147244 ko)
+COQC Instance/Lambda/Exp.v
+Lib/FMapExt.vo (real: 2.11, user: 1.75, sys: 0.34, mem: 399480 ko)
+COQC Instance/Proset.v
+Structure/Terminal.vo (real: 0.20, user: 0.15, sys: 0.05, mem: 134172 ko)
+COQC Instance/Roof.v
+Instance/Proset.vo (real: 0.21, user: 0.12, sys: 0.09, mem: 164440 ko)
+COQC Instance/Simplex/FinType.v
+Instance/Roof.vo (real: 0.24, user: 0.18, sys: 0.06, mem: 241072 ko)
+COQC Instance/Simplex/DNat.v
+File "./Instance/Simplex/DNat.v", line 8, characters 0-41:
+Warning: Notation "_ + _" was already used in scope nat_scope.
+[notation-overridden,parsing]
+File "./Instance/Simplex/DNat.v", line 8, characters 0-41:
+Warning: Notation "_ - _" was already used in scope nat_scope.
+[notation-overridden,parsing]
+File "./Instance/Simplex/DNat.v", line 8, characters 0-41:
+Warning: Notation "_ <= _" was already used in scope nat_scope.
+[notation-overridden,parsing]
+File "./Instance/Simplex/DNat.v", line 8, characters 0-41:
+Warning: Notation "_ < _" was already used in scope nat_scope.
+[notation-overridden,parsing]
+File "./Instance/Simplex/DNat.v", line 8, characters 0-41:
+Warning: Notation "_ >= _" was already used in scope nat_scope.
+[notation-overridden,parsing]
+File "./Instance/Simplex/DNat.v", line 8, characters 0-41:
+Warning: Notation "_ > _" was already used in scope nat_scope.
+[notation-overridden,parsing]
+File "./Instance/Simplex/DNat.v", line 8, characters 0-41:
+Warning: Notation "_ <= _ <= _" was already used in scope nat_scope.
+[notation-overridden,parsing]
+File "./Instance/Simplex/DNat.v", line 8, characters 0-41:
+Warning: Notation "_ < _ <= _" was already used in scope nat_scope.
+[notation-overridden,parsing]
+File "./Instance/Simplex/DNat.v", line 8, characters 0-41:
+Warning: Notation "_ <= _ < _" was already used in scope nat_scope.
+[notation-overridden,parsing]
+File "./Instance/Simplex/DNat.v", line 8, characters 0-41:
+Warning: Notation "_ < _ < _" was already used in scope nat_scope.
+[notation-overridden,parsing]
+File "./Instance/Simplex/DNat.v", line 8, characters 0-41:
+Warning: Notation "_ * _" was already used in scope nat_scope.
+[notation-overridden,parsing]
+id_right:
+  ∀ {Category : Category.Category} {x y : obj[Category]}
+  (f : x ~{ Category }~> y), f ∘ id{Category} ≈ f
+id_left:
+  ∀ {Category : Category.Category} {x y : obj[Category]}
+  (f : x ~{ Category }~> y), id{Category} ∘ f ≈ f
+comp_assoc:
+  ∀ {Category : Category.Category} {x y z w : obj[Category]}
+  (f : z ~{ Category }~> w) (g : y ~{ Category }~> z)
+  (h : x ~{ Category }~> y), f ∘ (g ∘ h) ≈ f ∘ g ∘ h
+comp_assoc_sym:
+  ∀ {Category : Category.Category} {x y z w : obj[Category]}
+  (f : z ~{ Category }~> w) (g : y ~{ Category }~> z)
+  (h : x ~{ Category }~> y), f ∘ g ∘ h ≈ f ∘ (g ∘ h)
+dom_comp:
+  ∀ {C : Category} {x y z : obj[C]} (g : y ~{ C }~> z) 
+  (f : x ~{ C }~> y), dom g = cod f ↔ dom (g ∘ f) = dom f
+cod_comp:
+  ∀ {C : Category} {x y z : obj[C]} (g : y ~{ C }~> z) 
+  (f : x ~{ C }~> y), dom g = cod f ↔ cod (g ∘ f) = cod g
+compose_respects:
+  ∀ {Category : Category.Category} {x y z : obj[Category]},
+  Proper (equiv ==> equiv ==> equiv) compose
+Instance/Simplex/DNat.vo (real: 0.54, user: 0.37, sys: 0.17, mem: 402428 ko)
+COQC Lib/MapDecide.v
+Theory/Morphisms.vo (real: 1.05, user: 0.96, sys: 0.08, mem: 356712 ko)
+COQC Solver/Expr.v
+Instance/Simplex/FinType.vo (real: 0.78, user: 0.60, sys: 0.18, mem: 414264 ko)
+COQC Structure/Discrete.v
+Solver/Expr.vo (real: 0.18, user: 0.13, sys: 0.04, mem: 161256 ko)
+COQC Theory/Category/Raw.v
+Structure/Discrete.vo (real: 0.16, user: 0.08, sys: 0.07, mem: 131888 ko)
+COQC Theory/Category/Semi.v
+Theory/Category/Semi.vo (real: 0.16, user: 0.10, sys: 0.05, mem: 137940 ko)
+COQC Theory/Coq/Monad.v
+Theory/Coq/Map.vo (real: 1.81, user: 1.10, sys: 0.26, mem: 425640 ko)
+COQC Theory/Coq/Traversable.v
+Theory/Coq/Traversable.vo (real: 0.14, user: 0.09, sys: 0.04, mem: 131984 ko)
+COQC Theory/Metacategory.v
+Lib/TList.vo (real: 2.18, user: 2.00, sys: 0.17, mem: 373804 ko)
+COQC Theory/Isomorphism.v
+Theory/Coq/Monad.vo (real: 0.20, user: 0.15, sys: 0.04, mem: 152184 ko)
+COQC Structure/Constant.v
+Structure/Constant.vo (real: 0.16, user: 0.10, sys: 0.05, mem: 129640 ko)
+COQC Instance/Poset.v
+Instance/Poset.vo (real: 0.16, user: 0.14, sys: 0.02, mem: 130548 ko)
+COQC Instance/Simplex/Stdfinset.v
+Theory/Category/Raw.vo (real: 0.92, user: 0.85, sys: 0.06, mem: 352996 ko)
+COQC Solver/Denote.v
+Solver/Denote.vo (real: 0.17, user: 0.13, sys: 0.04, mem: 177372 ko)
+COQC Theory/Coq/Either.v
+Construction/Coproduct.vo (real: 2.42, user: 2.38, sys: 0.04, mem: 356236 ko)
+COQC Theory/Coq/Maybe.v
+Theory/Coq/Either.vo (real: 0.18, user: 0.15, sys: 0.03, mem: 140700 ko)
+COQC Theory/Coq/Tuple.v
+Theory/Coq/Maybe.vo (real: 0.21, user: 0.15, sys: 0.06, mem: 142948 ko)
+COQC Solver/Reify.v
+Lib/MapDecide.vo (real: 1.71, user: 1.14, sys: 0.13, mem: 427512 ko)
+COQC Theory/Coq/List.v
+Theory/Coq/Tuple.vo (real: 0.26, user: 0.22, sys: 0.04, mem: 144800 ko)
+Solver/Reify.vo (real: 0.79, user: 0.67, sys: 0.11, mem: 365408 ko)
+COQC Solver/Normal.v
+Theory/Coq/List.vo (real: 1.67, user: 0.62, sys: 0.30, mem: 394948 ko)
+COQC Theory/Coq.v
+Lib/NETList.vo (real: 4.94, user: 4.76, sys: 0.18, mem: 413216 ko)
+Instance/Simplex/Stdfinset.vo (real: 2.73, user: 2.65, sys: 0.07, mem: 417120 ko)
+COQC Instance/Simplex/AugmentedSimplexCategory.v
+Theory/Coq.vo (real: 1.50, user: 0.53, sys: 0.25, mem: 343912 ko)
+Instance/Lambda/Exp.vo (real: 5.95, user: 5.84, sys: 0.11, mem: 479060 ko)
+COQC Instance/Lambda/Value.v
+File "./Instance/Simplex/AugmentedSimplexCategory.v", line 121, characters 0-115:
+Warning:
+The record monotonic_fn_sig could not be defined as a primitive record.
+[non-primitive-record,record]
+File "./Instance/Simplex/AugmentedSimplexCategory.v", line 132, characters 0-110:
+Warning: Ignoring canonical projection to sub_sort by Equality.sort in
+monotonic_fn_eqType: redundant with sub_eqType
+[redundant-canonical-projection,typechecker]
+Theory/Isomorphism.vo (real: 4.73, user: 4.64, sys: 0.09, mem: 367920 ko)
+COQC Theory/Functor.v
+COQC Construction/Opposite.v
+COQC Structure/Cartesian.v
+COQC Construction/Groupoid.v
+Instance/Lambda/Value.vo (real: 0.84, user: 0.73, sys: 0.11, mem: 376236 ko)
+COQC Instance/Lambda/Ren.v
+Construction/Opposite.vo (real: 0.63, user: 0.43, sys: 0.20, mem: 352124 ko)
+COQC Structure/Initial.v
+path_category@{u} = 
+λ A : Type,
+{|
+  obj := A;
+  hom := λ x y : A, x = y;
+  homset :=
+    λ X Y : A,
+    {| equiv := eq; setoid_equiv := CRelationClasses.eq_equivalence |};
+  id := λ x : A, eq_refl;
+  compose :=
+    λ (x y z : A) (f : (λ x0 y0 : A, x0 = y0) y z)
+    (g : (λ x0 y0 : A, x0 = y0) x y), eq_trans g f;
+  compose_respects :=
+    λ x y z : A, reflexive_proper (λ (f : y = z) (g : x = y), eq_trans g f);
+  id_left := λ (x y : A) (f : (λ x0 y0 : A, x0 = y0) x y), path_comp_left f;
+  id_right := λ (x y : A) (f : (λ x0 y0 : A, x0 = y0) x y), path_comp_right f;
+  comp_assoc :=
+    λ (x y z w : A) (f : (λ x0 y0 : A, x0 = y0) z w)
+    (g : (λ x0 y0 : A, x0 = y0) y z) (h : (λ x0 y0 : A, x0 = y0) x y),
+    path_comp_assoc h g f;
+  comp_assoc_sym := path_category_obligation_1 A
+|}
+     : Type → Category
+
+Arguments path_category A%type_scope
+Construction/Groupoid.vo (real: 0.90, user: 0.73, sys: 0.17, mem: 353060 ko)
+COQC Structure/Pullback.v
+Structure/Initial.vo (real: 0.28, user: 0.15, sys: 0.13, mem: 135688 ko)
+Structure/Pullback.vo (real: 0.18, user: 0.14, sys: 0.03, mem: 140836 ko)
+Instance/Simplex/AugmentedSimplexCategory.vo (real: 3.55, user: 2.75, sys: 0.15, mem: 447860 ko)
+Instance/Lambda/Ren.vo (real: 1.74, user: 1.62, sys: 0.12, mem: 400304 ko)
+COQC Instance/Lambda/Sub.v
+COQC Instance/Lambda/Eval.v
+Instance/Lambda/Sub.vo (real: 2.55, user: 2.45, sys: 0.09, mem: 441364 ko)
+COQC Instance/Lambda/Sem.v
+COQC Instance/Lambda/Full.v
+COQC Instance/Lambda/Log.v
+Solver/Normal.vo (real: 7.94, user: 7.74, sys: 0.19, mem: 394076 ko)
+COQC Solver/Decide.v
+Instance/Lambda/Log.vo (real: 0.69, user: 0.32, sys: 0.36, mem: 387468 ko)
+Instance/Lambda/Sem.vo (real: 1.39, user: 1.28, sys: 0.10, mem: 386684 ko)
+COQC Instance/Lambda/Step.v
+Instance/Lambda/Full.vo (real: 2.43, user: 2.27, sys: 0.15, mem: 407808 ko)
+Instance/Lambda/Step.vo (real: 2.57, user: 2.46, sys: 0.10, mem: 417440 ko)
+COQC Instance/Lambda/Multi.v
+COQC Instance/Lambda/Sound.v
+Theory/Functor.vo (real: 9.07, user: 8.89, sys: 0.18, mem: 384080 ko)
+COQC Construction/Product.v
+COQC Theory/Natural/Transformation.v
+Instance/Lambda/Sound.vo (real: 0.45, user: 0.35, sys: 0.09, mem: 385944 ko)
+COQC Instance/Cat.v
+Instance/Lambda/Multi.vo (real: 0.62, user: 0.52, sys: 0.10, mem: 386984 ko)
+COQC Instance/Two/Discrete.v
+Structure/Cartesian.vo (real: 9.62, user: 9.36, sys: 0.25, mem: 397384 ko)
+COQC Functor/Opposite.v
+Functor/Opposite.vo (real: 0.20, user: 0.16, sys: 0.04, mem: 151048 ko)
+COQC Construction/Subcategory.v
+Construction/Product.vo (real: 0.99, user: 0.87, sys: 0.11, mem: 359540 ko)
+COQC Construction/Quotient.v
+Construction/Subcategory.vo (real: 1.08, user: 1.03, sys: 0.05, mem: 360028 ko)
+COQC Instance/StrictCat.v
+Construction/Quotient.vo (real: 0.99, user: 0.87, sys: 0.12, mem: 358240 ko)
+COQC Theory/Naturality.v
+Instance/StrictCat.vo (real: 0.18, user: 0.10, sys: 0.07, mem: 149264 ko)
+COQC Functor/Coproduct.v
+Solver/Decide.vo (real: 6.66, user: 6.32, sys: 0.33, mem: 366164 ko)
+COQC Functor/Structure/Constant.v
+Theory/Naturality.vo (real: 0.63, user: 0.47, sys: 0.16, mem: 359144 ko)
+COQC Functor/Structure/Terminal.v
+Functor/Coproduct.vo (real: 0.72, user: 0.56, sys: 0.15, mem: 356588 ko)
+COQC Structure/Cocartesian.v
+Functor/Structure/Constant.vo (real: 0.22, user: 0.16, sys: 0.06, mem: 141852 ko)
+COQC Instance/Comp.v
+Functor/Structure/Terminal.vo (real: 0.21, user: 0.14, sys: 0.05, mem: 144020 ko)
+COQC Theory/Monad.v
+Theory/Monad.vo (real: 0.23, user: 0.19, sys: 0.04, mem: 155888 ko)
+COQC Instance/Fact.v
+Instance/Fact.vo (real: 0.97, user: 0.82, sys: 0.14, mem: 360876 ko)
+COQC Instance/Lambda/Norm.v
+Instance/Comp.vo (real: 1.74, user: 1.63, sys: 0.10, mem: 359888 ko)
+COQC Monad/Algebra.v
+Monad/Algebra.vo (real: 0.21, user: 0.13, sys: 0.07, mem: 148544 ko)
+COQC Monad/Kleisli.v
+Instance/Lambda/Norm.vo (real: 1.09, user: 0.89, sys: 0.20, mem: 387376 ko)
+COQC Monad/Transformer.v
+Instance/Two/Discrete.vo (real: 5.27, user: 5.06, sys: 0.20, mem: 369484 ko)
+COQC Solver.v
+Solver.vo (real: 0.23, user: 0.17, sys: 0.05, mem: 152312 ko)
+COQC Structure/Binoidal.v
+Monad/Transformer.vo (real: 1.34, user: 1.23, sys: 0.10, mem: 362620 ko)
+COQC Structure/Cartesian/Product.v
+Monad/Kleisli.vo (real: 1.80, user: 1.67, sys: 0.12, mem: 363160 ko)
+COQC Structure/Span.v
+Structure/Binoidal.vo (real: 0.76, user: 0.68, sys: 0.08, mem: 356904 ko)
+COQC Theory/Bicategory.v
+Instance/Cat.vo (real: 6.61, user: 6.50, sys: 0.10, mem: 374680 ko)
+COQC Theory/Dinatural.v
+Theory/Bicategory.vo (real: 0.23, user: 0.17, sys: 0.04, mem: 156372 ko)
+COQC Functor/Bifunctor.v
+Theory/Dinatural.vo (real: 0.24, user: 0.16, sys: 0.08, mem: 163292 ko)
+COQC Instance/One.v
+Theory/Natural/Transformation.vo (real: 7.19, user: 7.06, sys: 0.13, mem: 385800 ko)
+COQC Functor/Product/Internal.v
+Instance/One.vo (real: 0.36, user: 0.32, sys: 0.04, mem: 294032 ko)
+COQC Adjunction/Natural/Transformation.v
+Adjunction/Natural/Transformation.vo (real: 0.23, user: 0.16, sys: 0.07, mem: 151004 ko)
+COQC Construction/Comma.v
+Functor/Bifunctor.vo (real: 1.38, user: 1.26, sys: 0.11, mem: 359408 ko)
+COQC Functor/Structure/Cartesian.v
+Functor/Structure/Cartesian.vo (real: 0.76, user: 0.60, sys: 0.16, mem: 361344 ko)
+COQC Instance/Cat/Cartesian.v
+Functor/Product/Internal.vo (real: 2.00, user: 1.92, sys: 0.08, mem: 363776 ko)
+COQC Instance/Zero.v
+Structure/Cocartesian.vo (real: 6.45, user: 6.33, sys: 0.11, mem: 369380 ko)
+COQC Monad/Eilenberg/Moore.v
+Instance/Zero.vo (real: 0.34, user: 0.21, sys: 0.12, mem: 316492 ko)
+COQC Natural/Transformation/Opposite.v
+Natural/Transformation/Opposite.vo (real: 0.22, user: 0.17, sys: 0.05, mem: 148052 ko)
+COQC Structure/Bicartesian.v
+Structure/Cartesian/Product.vo (real: 3.67, user: 3.57, sys: 0.10, mem: 370128 ko)
+COQC Structure/Wedge.v
+Monad/Eilenberg/Moore.vo (real: 1.02, user: 0.89, sys: 0.13, mem: 360644 ko)
+COQC Structure/Monoidal.v
+Structure/Bicartesian.vo (real: 0.58, user: 0.46, sys: 0.11, mem: 356560 ko)
+COQC Adjunction/Natural/Transformation/Opposite.v
+Structure/Wedge.vo (real: 0.27, user: 0.22, sys: 0.05, mem: 182472 ko)
+COQC Instance/Cat/Cocartesian.v
+Structure/Monoidal.vo (real: 0.55, user: 0.44, sys: 0.11, mem: 289564 ko)
+COQC Structure/Distributive.v
+Adjunction/Natural/Transformation/Opposite.vo (real: 0.46, user: 0.32, sys: 0.14, mem: 314104 ko)
+COQC Instance/Simplex/MonoidalStructure.v
+Structure/Distributive.vo (real: 0.21, user: 0.14, sys: 0.06, mem: 140592 ko)
+COQC Structure/End.v
+Structure/End.vo (real: 0.31, user: 0.15, sys: 0.15, mem: 181804 ko)
+COQC Structure/Monoidal/Semicocartesian.v
+Theory/Metacategory.vo (real: 25.30, user: 25.06, sys: 0.23, mem: 575220 ko)
+COQC Instance/Sets.v
+Structure/Monoidal/Semicocartesian.vo (real: 0.31, user: 0.21, sys: 0.10, mem: 258816 ko)
+COQC Functor/Construction/Product.v
+Instance/Cat/Cartesian.vo (real: 2.92, user: 2.83, sys: 0.09, mem: 363524 ko)
+COQC Structure/Monoidal/Naturality.v
+Structure/Span.vo (real: 6.29, user: 6.11, sys: 0.18, mem: 364168 ko)
+COQC Structure/Monoidal/Semicartesian.v
+Instance/Lambda/Eval.vo (real: 19.79, user: 19.63, sys: 0.15, mem: 653508 ko)
+COQC Structure/Monoidal/Product.v
+Structure/Monoidal/Semicartesian.vo (real: 0.31, user: 0.22, sys: 0.08, mem: 248660 ko)
+COQC Structure/Monoidal/Proofs.v
+Instance/Cat/Cocartesian.vo (real: 3.85, user: 3.72, sys: 0.13, mem: 369996 ko)
+COQC Functor/Product.v
+Functor/Product.vo (real: 1.24, user: 1.14, sys: 0.08, mem: 359372 ko)
+COQC Instance/Lambda/Example.v
+Instance/Lambda/Example.vo (real: 0.56, user: 0.44, sys: 0.11, mem: 402576 ko)
+COQC Structure/Monoidal/Semicartesian/Terminal.v
+Structure/Monoidal/Semicartesian/Terminal.vo (real: 0.21, user: 0.13, sys: 0.07, mem: 138916 ko)
+Instance/Simplex/MonoidalStructure.vo (real: 8.09, user: 7.54, sys: 0.13, mem: 477512 ko)
+Instance/Sets.vo (real: 8.26, user: 8.13, sys: 0.13, mem: 392912 ko)
+COQC Theory/Adjunction.v
+COQC Instance/Fun.v
+COQC Construction/Enriched.v
+Functor/Construction/Product.vo (real: 8.32, user: 8.19, sys: 0.12, mem: 372640 ko)
+COQC Structure/Cartesian/Closed.v
+Construction/Enriched.vo (real: 3.85, user: 3.72, sys: 0.13, mem: 379948 ko)
+COQC Structure/Cone.v
+Structure/Cone.vo (real: 0.70, user: 0.61, sys: 0.09, mem: 359600 ko)
+Theory/Adjunction.vo (real: 4.56, user: 4.32, sys: 0.24, mem: 373652 ko)
+COQC Instance/Parallel.v
+COQC Instance/Sets/Cartesian.v
+Instance/Sets/Cartesian.vo (real: 0.72, user: 0.64, sys: 0.07, mem: 358520 ko)
+COQC Instance/Sets/Cocartesian.v
+Instance/Sets/Cocartesian.vo (real: 1.11, user: 1.00, sys: 0.11, mem: 359740 ko)
+COQC Instance/Sets/Par.v
+Instance/Fun.vo (real: 6.50, user: 6.33, sys: 0.16, mem: 390676 ko)
+COQC Instance/Two.v
+Structure/Monoidal/Naturality.vo (real: 14.66, user: 14.51, sys: 0.15, mem: 385160 ko)
+COQC Monad/Adjunction.v
+Monad/Adjunction.vo (real: 0.93, user: 0.86, sys: 0.07, mem: 364052 ko)
+COQC Structure/Monoidal/Compose.v
+Structure/Monoidal/Product.vo (real: 17.17, user: 16.89, sys: 0.27, mem: 659732 ko)
+COQC Structure/Closed.v
+Instance/Sets/Par.vo (real: 6.52, user: 6.43, sys: 0.09, mem: 387580 ko)
+COQC Theory/Kan/Extension.v
+Instance/Two.vo (real: 6.60, user: 6.48, sys: 0.11, mem: 372344 ko)
+COQC Theory.v
+Theory.vo (real: 0.23, user: 0.15, sys: 0.08, mem: 144604 ko)
+COQC Theory/Metacategory/ArrowsOnly.v
+Instance/Parallel.vo (real: 11.39, user: 11.24, sys: 0.15, mem: 429580 ko)
+COQC Functor/Diagonal.v
+Structure/Closed.vo (real: 5.85, user: 5.71, sys: 0.13, mem: 373500 ko)
+COQC Functor/Hom.v
+Functor/Diagonal.vo (real: 1.48, user: 1.35, sys: 0.13, mem: 364188 ko)
+COQC Adjunction/Natural/Transformation/Universal.v
+Theory/Kan/Extension.vo (real: 5.94, user: 5.83, sys: 0.11, mem: 384428 ko)
+COQC Adjunction/Opposite.v
+Adjunction/Opposite.vo (real: 0.25, user: 0.18, sys: 0.06, mem: 161900 ko)
+COQC Theory/Sheaf.v
+Theory/Sheaf.vo (real: 0.21, user: 0.16, sys: 0.04, mem: 141652 ko)
+COQC Construction/Free.v
+Construction/Comma.vo (real: 31.61, user: 31.44, sys: 0.16, mem: 461708 ko)
+COQC Functor/Strong.v
+Functor/Hom.vo (real: 3.98, user: 3.86, sys: 0.11, mem: 372904 ko)
+COQC Structure/Monoidal/Braided.v
+Adjunction/Natural/Transformation/Universal.vo (real: 2.82, user: 2.68, sys: 0.13, mem: 371464 ko)
+COQC Functor/Structure/Monoidal.v
+Functor/Structure/Monoidal.vo (real: 1.56, user: 1.47, sys: 0.08, mem: 361868 ko)
+COQC Functor/Representable.v
+Functor/Representable.vo (real: 0.28, user: 0.22, sys: 0.06, mem: 146612 ko)
+COQC Functor/Structure/Monoidal/Compose.v
+Construction/Free.vo (real: 3.05, user: 2.91, sys: 0.13, mem: 372028 ko)
+COQC Functor/Structure/Monoidal/Id.v
+Structure/Cartesian/Closed.vo (real: 26.82, user: 26.50, sys: 0.31, mem: 452664 ko)
+COQC Natural/Transformation/Monoidal.v
+Natural/Transformation/Monoidal.vo (real: 0.32, user: 0.21, sys: 0.11, mem: 157920 ko)
+COQC Instance/AST.v
+Functor/Structure/Monoidal/Id.vo (real: 5.69, user: 5.41, sys: 0.28, mem: 369128 ko)
+COQC Instance/Adj.v
+Functor/Strong.vo (real: 17.00, user: 16.77, sys: 0.22, mem: 378236 ko)
+COQC Instance/Adjoints.v
+Structure/Monoidal/Braided.vo (real: 16.77, user: 16.61, sys: 0.15, mem: 374536 ko)
+COQC Instance/Cat/Cartesian/Closed.v
+Instance/AST.vo (real: 16.47, user: 16.35, sys: 0.12, mem: 379344 ko)
+COQC Instance/Cones.v
+Instance/Cones.vo (real: 0.97, user: 0.83, sys: 0.13, mem: 360612 ko)
+COQC Structure/Limit.v
+Structure/Limit.vo (real: 0.28, user: 0.19, sys: 0.08, mem: 145372 ko)
+COQC Structure/BiCCC.v
+Instance/Adj.vo (real: 19.87, user: 19.66, sys: 0.20, mem: 453384 ko)
+COQC Instance/One/Diagonal.v
+Instance/One/Diagonal.vo (real: 0.36, user: 0.24, sys: 0.11, mem: 185096 ko)
+COQC Instance/Props.v
+Instance/Props.vo (real: 0.64, user: 0.50, sys: 0.13, mem: 361996 ko)
+COQC Instance/Sets/Cartesian/Closed.v
+Instance/Sets/Cartesian/Closed.vo (real: 1.47, user: 1.39, sys: 0.08, mem: 360828 ko)
+COQC Structure/Cartesian/Closed/Product.v
+Structure/Cartesian/Closed/Product.vo (real: 7.41, user: 7.16, sys: 0.24, mem: 379872 ko)
+COQC Structure/Complete.v
+Structure/Complete.vo (real: 0.33, user: 0.23, sys: 0.10, mem: 139752 ko)
+COQC Structure/Cone/Const.v
+Structure/Cone/Const.vo (real: 0.62, user: 0.44, sys: 0.17, mem: 362420 ko)
+COQC Structure/Cone/Natural/Transformation.v
+Structure/Cone/Natural/Transformation.vo (real: 0.50, user: 0.36, sys: 0.13, mem: 295344 ko)
+COQC Structure/Equalizer.v
+Structure/Equalizer.vo (real: 0.28, user: 0.20, sys: 0.07, mem: 140844 ko)
+COQC Structure/Limit/Cartesian.v
+Structure/Monoidal/Proofs.vo (real: 67.52, user: 67.19, sys: 0.33, mem: 474528 ko)
+COQC Structure/Limit/Kan/Extension.v
+Structure/Limit/Cartesian.vo (real: 5.55, user: 5.36, sys: 0.19, mem: 377540 ko)
+COQC Structure/Limit/Terminal.v
+Structure/Limit/Terminal.vo (real: 0.64, user: 0.45, sys: 0.19, mem: 338304 ko)
+COQC Structure/Pullback/Limit.v
+Structure/Monoidal/Compose.vo (real: 58.67, user: 58.36, sys: 0.31, mem: 492176 ko)
+COQC Tools/Represented.v
+Tools/Represented.vo (real: 0.30, user: 0.24, sys: 0.05, mem: 168580 ko)
+COQC Adjunction/Diagonal/Product.v
+Structure/Limit/Kan/Extension.vo (real: 6.88, user: 6.54, sys: 0.33, mem: 371956 ko)
+COQC Adjunction/Hom.v
+Adjunction/Diagonal/Product.vo (real: 3.00, user: 2.78, sys: 0.21, mem: 370056 ko)
+COQC Construction/Arrow.v
+Construction/Arrow.vo (real: 0.38, user: 0.23, sys: 0.14, mem: 140460 ko)
+COQC Functor/Hom/Yoneda.v
+Structure/Pullback/Limit.vo (real: 7.67, user: 7.54, sys: 0.13, mem: 377856 ko)
+COQC Construction/Comma/Natural/Transformation.v
+Functor/Hom/Yoneda.vo (real: 3.65, user: 3.43, sys: 0.21, mem: 364912 ko)
+COQC Construction/Product/Comma.v
+Instance/Cat/Cartesian/Closed.vo (real: 46.00, user: 45.69, sys: 0.31, mem: 436052 ko)
+COQC Construction/Slice.v
+Construction/Product/Comma.vo (real: 9.88, user: 9.55, sys: 0.33, mem: 423504 ko)
+COQC Theory/Universal/Arrow.v
+Structure/BiCCC.vo (real: 41.52, user: 41.28, sys: 0.24, mem: 449684 ko)
+COQC Structure/Monoidal/Balanced.v
+Structure/Monoidal/Balanced.vo (real: 0.37, user: 0.31, sys: 0.05, mem: 182352 ko)
+COQC Functor/Structure/Monoidal/Pure.v
+Adjunction/Hom.vo (real: 19.44, user: 19.13, sys: 0.31, mem: 427676 ko)
+COQC Functor/Construction/Product/Monoidal.v
+Theory/Universal/Arrow.vo (real: 8.23, user: 8.11, sys: 0.12, mem: 373756 ko)
+COQC Functor/Hom/Internal.v
+Functor/Structure/Monoidal/Pure.vo (real: 8.31, user: 8.05, sys: 0.24, mem: 371376 ko)
+COQC Structure/Monoidal/Semicartesian/Proofs.v
+Functor/Hom/Internal.vo (real: 5.84, user: 5.65, sys: 0.19, mem: 371884 ko)
+COQC Functor/Structure/Cartesian/Closed.v
+Functor/Structure/Cartesian/Closed.vo (real: 1.68, user: 1.43, sys: 0.25, mem: 365664 ko)
+COQC Natural/Transformation/Strong.v
+Natural/Transformation/Strong.vo (real: 0.31, user: 0.26, sys: 0.04, mem: 150368 ko)
+COQC Instance/Cones/Comma.v
+Instance/Adjoints.vo (real: 67.22, user: 66.99, sys: 0.23, mem: 481852 ko)
+COQC Instance/Cones/Limit.v
+Instance/Cones/Limit.vo (real: 0.30, user: 0.24, sys: 0.05, mem: 145112 ko)
+COQC Monad/Distributive.v
+Monad/Distributive.vo (real: 0.35, user: 0.28, sys: 0.06, mem: 166524 ko)
+COQC Theory/Algebra.v
+Theory/Algebra.vo (real: 0.79, user: 0.65, sys: 0.14, mem: 365836 ko)
+COQC Construction/Cayley.v
+Structure/Monoidal/Semicartesian/Proofs.vo (real: 17.80, user: 17.50, sys: 0.29, mem: 374160 ko)
+COQC Construction/Free/Quiver.v
+Functor/Structure/Monoidal/Compose.vo (real: 91.62, user: 91.29, sys: 0.31, mem: 508004 ko)
+COQC Structure/Monoidal/Symmetric.v
+Construction/Free/Quiver.vo (real: 3.04, user: 2.92, sys: 0.11, mem: 381616 ko)
+COQC Monad/Compose.v
+Construction/Cayley.vo (real: 12.26, user: 12.07, sys: 0.18, mem: 403008 ko)
+COQC Instance/Simplex/CanonicalFactorization.v
+Monad/Compose.vo (real: 2.28, user: 2.11, sys: 0.16, mem: 368884 ko)
+File "./Instance/Simplex/CanonicalFactorization.v", line 1040, characters 32-62:
+Warning: Unused introduction pattern: IHf [unused-intro-pattern,tactics]
+Instance/Simplex/CanonicalFactorization.vo (real: 6.34, user: 5.42, sys: 0.38, mem: 467784 ko)
+Structure/Monoidal/Symmetric.vo (real: 11.29, user: 11.15, sys: 0.14, mem: 370788 ko)
+COQC Structure/Monoidal/Relevance.v
+COQC Structure/Monoidal/Commutative.v
+COQC Structure/Monoidal/Traced.v
+Structure/Monoidal/Commutative.vo (real: 0.37, user: 0.25, sys: 0.11, mem: 149260 ko)
+Structure/Monoidal/Traced.vo (real: 0.74, user: 0.52, sys: 0.22, mem: 320752 ko)
+Instance/Cones/Comma.vo (real: 50.60, user: 50.21, sys: 0.38, mem: 659660 ko)
+Theory/Metacategory/ArrowsOnly.vo (real: 149.55, user: 148.19, sys: 0.72, mem: 768200 ko)
+COQC Theory/Metacategory/DecideExample.v
+Theory/Metacategory/DecideExample.vo (real: 13.13, user: 11.86, sys: 0.73, mem: 733052 ko)
+Structure/Monoidal/Relevance.vo (real: 65.77, user: 65.54, sys: 0.22, mem: 437852 ko)
+COQC Structure/Monoidal/Cartesian.v
+Structure/Monoidal/Cartesian.vo (real: 1.99, user: 1.84, sys: 0.15, mem: 362012 ko)
+COQC Structure/Monoidal/Closed.v
+COQC Functor/Construction/Product/Strong.v
+COQC Structure/Monoidal/Cartesian/Proofs.v
+Structure/Monoidal/Closed.vo (real: 1.48, user: 1.15, sys: 0.33, mem: 362080 ko)
+COQC Functor/Applicative.v
+COQC Structure/Monoidal/Internal/Product.v
+Functor/Applicative.vo (real: 0.46, user: 0.24, sys: 0.22, mem: 164732 ko)
+COQC Natural/Transformation/Applicative.v
+Natural/Transformation/Applicative.vo (real: 0.43, user: 0.29, sys: 0.13, mem: 158848 ko)
+Construction/Slice.vo (real: 128.05, user: 127.69, sys: 0.35, mem: 534876 ko)
+COQC Construction/Slice/Pullback.v
+Construction/Slice/Pullback.vo (real: 7.02, user: 6.82, sys: 0.19, mem: 394192 ko)
+Construction/Comma/Natural/Transformation.vo (real: 145.11, user: 144.78, sys: 0.32, mem: 581700 ko)
+Structure/Monoidal/Internal/Product.vo (real: 31.91, user: 31.52, sys: 0.39, mem: 449500 ko)
+COQC Functor/Traversable.v
+COQC Instance/Coq.v
+COQC Structure/Monoid.v
+Functor/Construction/Product/Strong.vo (real: 33.43, user: 32.99, sys: 0.44, mem: 453716 ko)
+Instance/Coq.vo (real: 1.88, user: 1.65, sys: 0.23, mem: 366000 ko)
+COQC Instance/Coq/Applicative.v
+COQC Instance/Coq/Monad.v
+COQC Instance/Coq/ParE.v
+COQC Instance/Ens.v
+Instance/Coq/Applicative.vo (real: 0.59, user: 0.29, sys: 0.30, mem: 177024 ko)
+COQC Instance/Lambda.v
+Instance/Coq/Monad.vo (real: 0.86, user: 0.38, sys: 0.47, mem: 318632 ko)
+COQC Instance/Rel.v
+Instance/Rel.vo (real: 1.83, user: 1.51, sys: 0.32, mem: 365524 ko)
+COQC Instance/Shapes.v
+Instance/Ens.vo (real: 3.03, user: 2.63, sys: 0.39, mem: 368184 ko)
+COQC Theory/Coq/Functor/Proofs.v
+Theory/Coq/Functor/Proofs.vo (real: 0.98, user: 0.72, sys: 0.26, mem: 365116 ko)
+COQC Tools/Abstraction.v
+Tools/Abstraction.vo (real: 4.85, user: 4.67, sys: 0.18, mem: 370228 ko)
+COQC Theory/Coq/Applicative/Proofs.v
+Instance/Coq/ParE.vo (real: 8.92, user: 8.42, sys: 0.49, mem: 376964 ko)
+COQC Theory/Coq/Either/Proofs.v
+Theory/Coq/Either/Proofs.vo (real: 0.85, user: 0.68, sys: 0.17, mem: 365864 ko)
+COQC Theory/Coq/List/Proofs.v
+Theory/Coq/Applicative/Proofs.vo (real: 2.30, user: 2.12, sys: 0.17, mem: 371664 ko)
+COQC Theory/Coq/Tuple/Proofs.v
+Theory/Coq/Tuple/Proofs.vo (real: 0.91, user: 0.77, sys: 0.14, mem: 366136 ko)
+COQC Theory/Coq/Monad/Proofs.v
+Theory/Coq/Monad/Proofs.vo (real: 0.69, user: 0.43, sys: 0.26, mem: 229252 ko)
+COQC Theory/Coq/Maybe/Proofs.v
+Theory/Coq/List/Proofs.vo (real: 3.45, user: 2.21, sys: 0.61, mem: 454868 ko)
+Instance/Shapes.vo (real: 11.07, user: 10.82, sys: 0.24, mem: 380388 ko)
+Theory/Coq/Maybe/Proofs.vo (real: 1.03, user: 0.91, sys: 0.11, mem: 375212 ko)
+Instance/Lambda.vo (real: 13.28, user: 12.90, sys: 0.38, mem: 447656 ko)
+Functor/Traversable.vo (real: 45.53, user: 45.26, sys: 0.26, mem: 419164 ko)
+COQC Functor/Traversable/Product.v
+Functor/Traversable/Product.vo (real: 5.57, user: 5.34, sys: 0.22, mem: 380384 ko)
+Structure/Monoidal/Cartesian/Proofs.vo (real: 104.76, user: 104.25, sys: 0.51, mem: 496972 ko)
+COQC Functor/Strong/Product.v
+COQC Structure/Monoidal/Cartesian/Cartesian.v
+Structure/Monoidal/Cartesian/Cartesian.vo (real: 1.78, user: 1.44, sys: 0.33, mem: 363448 ko)
+COQC Instance/Coq/Par.v
+Structure/Monoid.vo (real: 106.84, user: 106.32, sys: 0.50, mem: 759572 ko)
+COQC Monad/Monoid.v
+COQC Structure/Group.v
+Structure/Group.vo (real: 0.28, user: 0.19, sys: 0.09, mem: 171772 ko)
+COQC Structure/Group/Proofs.v
+Monad/Monoid.vo (real: 5.37, user: 5.19, sys: 0.18, mem: 384404 ko)
+Structure/Group/Proofs.vo (real: 42.02, user: 41.79, sys: 0.22, mem: 446188 ko)
+Instance/Coq/Par.vo (real: 131.56, user: 131.07, sys: 0.49, mem: 887224 ko)
+Functor/Construction/Product/Monoidal.vo (real: 361.90, user: 361.31, sys: 0.57, mem: 810384 ko)
+Functor/Strong/Product.vo (real: 216.88, user: 216.31, sys: 0.55, mem: 951936 ko)

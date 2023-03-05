@@ -40,3 +40,4 @@
 /html/
 log_*.txt
 /build.log
+CoqMakefile.conf
