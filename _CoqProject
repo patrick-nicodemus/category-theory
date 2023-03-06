@@ -102,6 +102,10 @@ Instance/Two/Discrete.v
 Instance/Zero.v
 Instance/Simplex/NaturalNumberArithmetic.v
 Instance/Simplex/FinType.v
+Instance/Simplex/Stdfinset/Stdfinset.v
+Instance/Simplex/Stdfinset/findlast.v
+Instance/Simplex/Stdfinset/face_degeneracy.v
+Instance/Simplex/Stdfinset/factorization.v
 Instance/Simplex/Stdfinset.v
 Instance/Simplex/DNat.v
 Instance/Simplex/AugmentedSimplexCategory.v
