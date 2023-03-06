@@ -22,6 +22,12 @@ Set Universe Polymorphism.
 
 Notation "''I_' n" := (ordinal n).
 
+(** We define [findlast] which behaves opposite to [find] in ssreflect. We define the expected dual theorems for [findlast] as for [find].
+
+We define [find_ord] and [findlast_ord] which are the expected variants of [find] and [findlast] for ordinals, except that in [find_ord] and [findlast_ord] we explicitly assume that the element we are looking for exists, whereas for [find] and [findlast] the search may fail.
+
+We define predicates [least_st] and [gtest_st] which say that a given element of ['I_n] is the least / greatest element satisfying a certain predicate, and use these to write specifications for [find_ord] and [findlast_ord].*)
+
 Section findlast.
   Variable A : Type.
   Variable P : pred A.

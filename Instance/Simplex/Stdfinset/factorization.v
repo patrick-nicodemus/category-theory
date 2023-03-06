@@ -24,6 +24,23 @@ Set Universe Polymorphism.
 
 Notation "''I_' n" := (ordinal n).
 
+(** We start to do some work towards factorization. In particular we have:
+
+- if [ f : n -> m.+1 ] and [i ∉ im f], then there is [g : n -> m] with δi ∘ g = f.  ( [facemap_factoring_eq], [facemap_factoring_eq] )
+
+- We define [hitstwice f i := [exists x, y, x < y & f x = i & f y = i ]. We show that [f] is injective iff [hitstwice f] is the constant predicate at False.
+
+- We define [not_injective_hitstwice_val] which associates to each non-injective function a value which it hits twice.
+
+- Based on this we define [degeneracy_factoring_map], which, given f : n -> .+1 such that [f] hits [i] twice, gives a factoring of f through the degeneracy [σi].
+
+- [factoring_preserves_surjectivity] : If f is surjective then so is the [degeneracy_factoring_map].
+
+- [surjective_card] - if [f : 'I_m -> 'I_n] is surjective, then n <= m.
+
+*)
+
+
 Definition gtest_not_in_img {n m: nat} (f : 'I_m^n) (p : ~~ surjective f)
   : 'I_m.
 Proof.

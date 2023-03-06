@@ -7,5 +7,29 @@ The purpose of this document is to record the progress of writing the
 code in this development, talk about pain points and brainstorm about
 how I would like to make my life easier.
 
+\section{If then rules}
+\begin{itemize}
+\item If the goal contains an expression of the form $[ \mathsf{ffun
+  }x \Rightarrow t] a$, rewrite (under binders or otherwise) using
+  $\mathsf{ffunE}$.
+\item If you have a match, try case analysis.
+\item If you have an expression in the goal of the form $x - n + n$,
+  try rewriting and looking for a proof that $x\geq n$.
+\item If you have an expression, in your goal or in the hypothesis, of
+  the form $\lnot n \leq m$, rewrite this as $m < n$.
+\item If you have an expression of the form $b = \mathsf{false}$,
+  rewrite this as $\lnot b$.
+\item If you have $n\leq m$ and $m < n$ as hypotheses, conclude contradiction.
+\end{itemize}
+\section{Other kinds of possible rules}
+\begin{itemize}
+\item If all other options have been exhausted, try unfolding a
+  constant term whose definition is unknown.
+\end{itemize}
+
+
+
+
+
 
 \end{document}
