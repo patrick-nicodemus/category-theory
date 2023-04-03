@@ -245,8 +245,8 @@ Program Definition rshift_m (m n : nat)
   Sub (finfun (fun i => rshift n i)) _.
 Next Obligation.
   by apply (rwP (monotonicP _ )); intros; rewrite ! ffunE;
-    unfold rshift; simpl; autorewrite with arith.
-Qed.  
+    unfold rshift; simpl; autorewrite with arith_rewrite.
+Qed.
 
 
 Arguments δ {n} i.

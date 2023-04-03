@@ -8,9 +8,6 @@ Require Import mathcomp.ssreflect.ssrnat.
 Require Import mathcomp.ssreflect.eqtype.
  
 Global Create HintDb arith discriminated.
-(* Check leq_trans. *)
-(* leq_trans *)
-(*      : forall n m p : nat, m <= n -> n <= p -> m <= p *)
 Ltac leq_transleft :=
   match goal with
   | [ H : is_true( ?m <= ?n ) |- is_true ( ?m <= ?p ) ] => apply (@leq_trans n _ _ H)
@@ -26,9 +23,10 @@ Ltac ltn_predKhint :=
   | [ H : is_true (S ?Y <= ?X) |- ?X.-1.+1 = ?X ] => exact: (@ltn_predK Y X H)
   end.
 
-Global Hint Extern 2 => leq_transleft : arith.
-Global Hint Extern 2 => leq_transright : arith.
-Global Hint Extern 2 => ltn_predKhint : arith.
+Global Hint Extern 2 (is_true ( ?m <= ?p )) => leq_transleft : arith.
+Global Hint Extern 2 (is_true( ?m <= ?p )) => leq_transright : arith.
+Global Hint Extern 2 (?X = ?X.-1.+1) => ltn_predKhint : arith.
+Global Hint Extern 2 (?X = ?X.-1.+1) => ltn_predKhint : arith.
 Global Hint Resolve leq_trans : arith.
 Global Hint Resolve ltn_predK : arith. 
 Global Hint Resolve ltn_ord : arith.
@@ -66,52 +64,64 @@ Ltac fail_if_unchanged t :=
                   end
   end.
 
+#[export] Hint Resolve leq_pred : arith.
 Proposition nlek_nm1lek : forall (n m : nat), (n <= m) -> (n.-1 <= m).
 Proof.
-  intros n m ineq; apply (@leq_trans n); [exact: leq_pred | assumption].
+  auto with arith.
 Qed.
+
+Create HintDb arith_rewrite.
+#[export] Hint Rewrite ltnS : arith_rewrite.
+
+#[export] Hint Extern 20 => autorewrite with arith_rewrite : arith.
+
+Print Rewrite HintDb arith_rewrite.
+
 Proposition nltk_nm1ltk : forall (n m : nat), (n < m) -> (n.-1 < m).
 Proof.
-  intro n; destruct n; [ done |].
-  exact: nlek_nm1lek.
+  auto with arith.
 Qed.
+
+#[export] Hint Rewrite -> ltn_predRL : arith_rewrite.
 
 Proposition nlek_nm1lekm1 : forall (n m : nat), (n <= m) -> (n.-1 <= m.-1).
 Proof.
-  intros n m ineq; do 2 ! rewrite -subn1. exact: leq_sub. 
+  intros n m H.
+  apply (elimT leP) in H.
+  apply (introT leP).
+  now apply le_pred. 
 Qed.
 
 Global Hint Resolve nlek_nm1lek : arith.
 Global Hint Resolve nltk_nm1ltk : arith.
 Global Hint Resolve nlek_nm1lekm1 : arith.
 Global Hint Resolve negbTE : arith.
+#[export] Hint Resolve leq_addr : arith.
 
 Proposition nltm_nltmk : forall n m k: nat, n <= m -> n <= m + k.
 Proof.
-  intros n m k ineq.
-  apply: (@leq_trans m n (m + k)); [ exact: ineq | exact: leq_addr ].
+  auto with arith.
 Qed.
 
 Proposition nltk_nltmk : forall n m k: nat, n <= k -> n <= m + k.
 Proof.
-  intros n m k ineq.
-  apply (@leq_trans k n (m + k)); auto with arith.
+  auto with arith.
 Qed.
+
+#[export] Hint Extern 5 (is_true (?X != ?Y)%nat) => rewrite neq_ltn : arith.
+
+Definition introTorP (b1 b2 : bool):= introT (@orP b1 b2).
+
+#[export] Hint Resolve introTorP : arith.
 
 Proposition nltm_nneqm : forall n m : nat, n < m -> n !=m.
 Proof.
-  intros n m.
-  rewrite ltn_neqAle.
-  move/andP; by case.
+  auto with arith.
 Qed.
 
 Proposition nltm_mneqn : forall n m : nat, m < n -> n !=m.
 Proof.
-  intros n m.
-  rewrite ltn_neqAle; intro H.
-  apply (rwP andP) in H; destruct H as [ neq _].
-  apply/eqP. intro H; rewrite H in neq; apply negbTE in neq; rewrite eq_refl in neq.
-  discriminate.
+  auto with arith.
 Qed.
 
 Global Hint Resolve nltm_nltmk : arith.
@@ -119,9 +129,9 @@ Global Hint Resolve nltk_nltmk : arith.
 Global Hint Resolve addn0 : arith.
 Global Hint Resolve addnA : arith.
 Global Hint Unfold addn : arith.
-Global Hint Rewrite leq_add2l : arith.
-Global Hint Rewrite -> addn0 : arith.
-Global Hint Rewrite -> add0n : arith.
+Global Hint Rewrite leq_add2l : arith_rewrite.
+Global Hint Rewrite -> addn0 : arith_rewrite.
+Global Hint Rewrite -> add0n : arith_rewrite.
 Global Hint Resolve nltm_nneqm : arith.
 Global Hint Resolve nltm_mneqn : arith.
 
@@ -171,6 +181,9 @@ Ltac arith_simpl :=
 Global Hint Extern 0 => arith_simpl : arith.
 Global Hint Extern 10 (_ <= _) => (eapply leq_trans) : arith.
 Global Hint Resolve leqW : arith.
+#[export] Hint Unfold nat_of_bool : arith.
+#[export] Hint Rewrite sub0n : arith_rewrite.
+#[export] Hint Rewrite subn0 : arith_rewrite.
 
 Ltac ltnNge_in_H :=
   match goal with
@@ -184,7 +197,7 @@ Global Hint Extern 4 => ltnNge_in_H : arith.
 Global Hint Extern 4 => ltnNge_in_goal : arith.
 Proposition n_leq_m_n_lt_msub1 (n m : nat) : n < m -> n <= m.-1.
 Proof.
-  intro ineq. change n with n.+1.-1. by auto with arith.
+  destruct m; auto with arith.
 Qed.
 
 Global Hint Resolve n_leq_m_n_lt_msub1 : arith.
@@ -198,10 +211,14 @@ Proposition δi_δj_nat :
 Proof.
   intros i j ineq x; simpl.
   rewrite [bump i (bump _ _)]bumpC; unfold unbump.
-  destruct j; [done |]; arith_simpl; simpl.
-  destruct (@leqP i j) as [ineq' | _]; [ | discriminate ]; arith_simpl.
+  have -> :(j.-1 < i = false). {
+    auto with arith.
+  }
+  autounfold with arith.
+  autorewrite with arith_rewrite.
   rewrite {4}/bump.
-  rewrite ineq'; by arith_simpl.
+  have -> :( i <= j.-1). { auto with arith. }
+  now destruct j. 
 Qed.
 
 (**   σ_j ∘ σ_i = σ_i ∘ σ_(j+1)   ;  i <= j *)
