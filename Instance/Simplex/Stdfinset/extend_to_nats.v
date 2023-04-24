@@ -22,47 +22,55 @@ Set Universe Polymorphism.
 Notation "''I_' n" := (ordinal n).
 
 Open Scope nat_scope.
-Check @Sub.
 
-Definition extend_to_nats_mor (n m : nat) (f : 'I_m^n) : nat -> nat.
-Proof.
-    intro k.
-    destruct (@idP (k < n)) as [i |].
-    {  
-        exact (val (f (@Sub _ _ _ k i))).
-    }
-    {
-        exact (k - n + m).
-    }
-Defined.
-Print extend_to_nats_mor.
+Definition extend_to_nats_mor (n m : nat) (f : 'I_m^n) : nat -> nat :=
+  fun k => match @idP (k < n) with
+           | @ReflectT _ p => val (f (@Sub _ _ _ k p))
+           | _ => k - n + m
+           end.
 
 Definition extend_to_nats : @Functor stdfinset Coq.
 Proof.
-    unshelve eapply Build_Functor.
-    {
-        exact (fun _ => nat).
+  refine(
+ {|
+   fobj := fun _ : obj[stdfinset] => nat;
+   fmap x y f := extend_to_nats_mor x y f;
+   fmap_respects x y := ltac:(congruence);
+   fmap_id := _;
+   fmap_comp := _;
+   
+ |}).
+  {
+    intro o.
+    cbn delta iota beta.
+    intro x.
+    cbv delta [extend_to_nats_mor] beta.
+    destruct idP.
+    { rewrite ffunE. exact erefl. }
+    { rewrite -addnABC;
+        [ rewrite subnn; apply addn0
+        | move/negP : n; rewrite -ltnNge; firstorder
+        | done ].
     }
-    {
-        exact (fun x y f => extend_to_nats_mor x y f).
+  }
+  {
+    intros x y z f g. unfold extend_to_nats_mor,
+      equiv, homset, Coq. intro k.
+    destruct idP. {
+      cbv delta [val ordinal_subType stdfinset compose] beta iota.
+      rewrite -> ffunE.
+      destruct idP as [tt | ff];
+        destruct idP as [ | ff1].
+        { now do 2 (do 2 (apply f_equal); apply val_inj; simpl). }
+        { now contradiction ff1. }
+        { now contradiction ff. }
+        { contradiction ff1. }
     }
-    { 
-        intros x y f g t ; simpl in t; now destruct t.
-    }
-    {
-        simpl; intro n.
-        unfold extend_to_nats_mor.
-        debug auto.
-        intro.
-        destruct idP.
-        {
-            now rewrite ffunE.
-        }
-        {
-            Search (?x - ?n + ?n).
-            rewrite subnK; [ done | ].
-            auto with arith.
-            done.
-            Set Printing All.
-        }
-    }
+    cbv delta [compose obj val ordinal_subType Sub] beta iota.
+    destruct idP; destruct idP; try contradiction.
+    { (have H : (~ (k - x + y < y)) by auto with arith);
+      contradiction H. }
+    { rewrite -(@addnBA (k - x) y y); [ rewrite subnn | auto].
+      now rewrite addn0. }
+  }
+Defined.

@@ -9,11 +9,11 @@ Require Import mathcomp.ssreflect.eqtype.
  
 Global Create HintDb arith discriminated.
 Ltac leq_transleft :=
-  match goal with
+  multimatch goal with
   | [ H : is_true( ?m <= ?n ) |- is_true ( ?m <= ?p ) ] => apply (@leq_trans n _ _ H)
   end.
 Ltac leq_transright :=
-  match goal with
+  multimatch goal with
   | [ H : is_true( ?n <= ?p ) |- is_true( ?m <= ?p ) ] => refine (@leq_trans n _ _ _ H)
   end.
 
@@ -72,10 +72,10 @@ Qed.
 
 Create HintDb arith_rewrite.
 #[export] Hint Rewrite ltnS : arith_rewrite.
-
-#[export] Hint Extern 20 => autorewrite with arith_rewrite : arith.
-
-Print Rewrite HintDb arith_rewrite.
+Definition rwP_negP (b : bool) := rwP (@negP b).
+#[export] Hint Rewrite -> rwP_negP : arith_rewrite.
+ 
+#[export] Hint Extern 20 => autorewrite with arith_rewrite: arith.
 
 Proposition nltk_nm1ltk : forall (n m : nat), (n < m) -> (n.-1 < m).
 Proof.
@@ -149,14 +149,14 @@ Global Hint Resolve nltm_mneqn : arith.
 
 Ltac arith_simpl :=
   do ! (match goal with
-        |[ |- context[addn _ _] ] => fail_if_unchanged ltac:(rewrite add0n)
-        |[ |- context[addn _ _] ] => fail_if_unchanged ltac:(rewrite addn0)
-        |[ |- context[addn _ _] ] => fail_if_unchanged ltac:(rewrite addn1)
-        |[ |- context[addn _ _] ] => fail_if_unchanged ltac:(rewrite add1n)
-        |[ |- context[subn _ _] ] => fail_if_unchanged ltac:(rewrite subn1)
-        |[ |- context[subn _ _] ] => fail_if_unchanged ltac:(rewrite subn0)
-        |[ |- context[subn _ _] ] => fail_if_unchanged ltac:(rewrite leq_add2l)
-        |[ |- context[(?x < ?n.+1)] ] => fail_if_unchanged ltac:(rewrite leq_add2l)
+        |[ |- context[addn _ _] ] => progress(rewrite add0n)
+        |[ |- context[addn _ _] ] => progress(rewrite addn0)
+        |[ |- context[addn _ _] ] => progress(rewrite addn1)
+        |[ |- context[addn _ _] ] => progress(rewrite add1n)
+        |[ |- context[subn _ _] ] => progress(rewrite subn1)
+        |[ |- context[subn _ _] ] => progress(rewrite subn0)
+        |[ |- context[subn _ _] ] => progress(rewrite leq_add2l)
+        |[ |- context[(?x < ?n.+1)] ] => progress(rewrite leq_add2l)
         |[ H : lt ?x ?y |- _ ] =>
             apply (rwP ltP) in H
         |[ H : not (lt ?x ?y) |- _ ] =>
@@ -184,6 +184,7 @@ Global Hint Resolve leqW : arith.
 #[export] Hint Unfold nat_of_bool : arith.
 #[export] Hint Rewrite sub0n : arith_rewrite.
 #[export] Hint Rewrite subn0 : arith_rewrite.
+#[export] Hint Rewrite subnn : arith_rewrite.
 
 Ltac ltnNge_in_H :=
   match goal with
@@ -266,8 +267,6 @@ Ltac resolve_boolean :=  let VAR := fresh "boolvar" in
                           assert (IS_TRUE : VAR) by (unfold VAR; auto 8 with arith);
                           rewrite IS_TRUE; clear IS_TRUE) ; clear VAR.
 
-
-
 Proposition δi_σj_iltj_nat :
   forall (i j : nat), i < j -> comp (unbump j) (bump i) =1 comp (bump i) (unbump j.-1).
 Proof.
@@ -275,10 +274,13 @@ Proof.
   unfold bump, unbump; simpl.
   destruct j ; [done | ]; simpl. 
   destruct (leqP i x) as [i_leq_x | i_gt_x ]; arith_simpl.
-  { destruct (leqP j.+1 x) as [j_lt | j_gt];
-      arith_simpl; resolve_boolean; auto with arith. }
-  resolve_boolean; arith_simpl.
-  assert (z : (j < x) = false ) by auto with arith; rewrite z; clear z; arith_simpl.
+  { destruct (leqP j.+1 x) as [j_lt | j_gt]; arith_simpl.
+    { have -> : (is_true (i <= x.-1)) by auto with arith.
+      auto with arith. }
+    { rewrite i_leq_x. auto with arith. }
+  } 
+  assert (z : (j < x) = false ) by auto with arith. rewrite z; clear z; arith_simpl.
+  have -> :((j.+1 < x) = false) by auto 8 with arith. arith_simpl.
   resolve_boolean; done.
 Qed.
 
@@ -299,15 +301,23 @@ Proof.
   intros i j ineq x; simpl.
   unfold unbump, bump.
   destruct (leqP i x) as [i_leq_x | i_gt_x ]; arith_simpl.  {
-    resolve_boolean; arith_simpl.
-    assert (z2 : j < x) by auto with arith; rewrite z2;  arith_simpl.
-    resolve_boolean; eauto with arith. }
-  destruct (leqP x j) as [j_leq_x | j_gt_x]; arith_simpl.  {
-    assert (z1 : i.-1 <= x = false) by auto using (@leq_trans j.+1) with arith.
+    destruct (@idP (j <= x)); [ | apply False_rect; auto with arith].
+    have -> :(j < x). { now do 2 leq_transright. }
+    arith_simpl.
+    have -> : (is_true (i.-1 <= x.-1)) by auto with arith.
+    arith_simpl.
+    eapply Lt.S_pred_stt.
+    instantiate (1 := j.+1).
+    auto with arith. }
+  {
+    destruct (leqP x j) as [j_leq_x | j_gt_x]; arith_simpl.  {
+      assert (z1 : i.-1 <= x = false) by
+        auto using (@leq_trans j.+1) with arith.
     rewrite z1; done.
   }
   destruct x; resolve_boolean; auto with arith.
-Qed.      
+  }
+Qed.
 
 Open Scope nat_scope.
 Definition nat_eqP_hint := fun n m : nat => (rwP (@eqP nat_eqType n m)).

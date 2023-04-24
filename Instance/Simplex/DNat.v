@@ -1,6 +1,6 @@
 Require Import Category.Lib.
 Require Import Theory.Category.
-Require Import StrictProp.
+From Coq Require Import StrictProp.
 Require Import ssreflect.
 Require Import ssrfun.
 Require Import ssrbool.
