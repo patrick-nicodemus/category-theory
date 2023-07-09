@@ -98,7 +98,7 @@ Proof.
 Qed.
 
 
-Definition hitstwice {n m : nat} (f : 'I_(m.+1)^n) (i : 'I_m.+1) :=
+Definition hitstwice {n m : nat} (f : 'I_(m)^n) (i : 'I_m) :=
   [exists x : 'I_n, exists y : 'I_n, (x < y) && (f x == i) && (f y == i) ].
 
 Proposition nltm_not_injective {n m : nat} (f : 'I_(m.+1)^n) (p : m.+1 < n)
@@ -108,52 +108,87 @@ Proposition nltm_not_injective {n m : nat} (f : 'I_(m.+1)^n) (p : m.+1 < n)
     apply (leq_card f); by apply/injectiveP.
 Qed.
 
+Lemma empty_type_seq (A : finType) (l : seq A) : #|A|=0 -> l = [::].
+Proof.
+  move => H.
+  case l; [ by [] | move => s].
+  now move: (fintype0 s H).
+Qed.
+
 (** TODO - come back to this proof later and see if it can be edited shorter. The main sources of bureaucratic overhead in these proofs are boolean reflection stuff and reducing arguments about ordinals in 'I_n to arguments about natural numbers *)
-Proposition not_injective_hitstwice {n m : nat} (f : 'I_(m.+1)^n) :
+Proposition not_injective_hitstwice {n m : nat} (f : 'I_m^n) :
   (injectiveb f) <-> (hitstwice f =1 xpred0).
 Proof.
   unfold injectiveb, dinjectiveb.
-  split.
-  { intro H. move/uniqPn : H => H.
-    specialize H with ord0. intro y. unfold hitstwice.
-    apply negbTE; apply/existsPn; intro x1; apply/existsPn; intro x2.
-    apply/negP; intro k. contradiction H.
-    exists x1, x2. move/andP in k; destruct k as [conj fx2eqy].
-    move/andP in conj; destruct conj as [x1_lt_x2 fx1eqy].
-    split; [ done
-           | rewrite size_map size_enum_ord; by destruct x2
-           | simpl
-      ].
-    rewrite (nth_map x1 ord0); [ | rewrite size_enum_ord; by destruct x1].
-    rewrite (nth_map x2 ord0); [ | rewrite size_enum_ord; by destruct x2].
-    do 2! rewrite nth_ord_enum.
-    apply (rwP eqP) in fx1eqy, fx2eqy. rewrite fx1eqy fx2eqy; done.
+  split. {
+    move => H a.
+    apply negbTE.
+    apply/negP => hits2x.
+    move : H. 
+    apply/negP.
+    unfold hitstwice in hits2x.
+    move/existsP : hits2x => [x exy].
+    apply/(@uniqPn _ a). 
+    move/existsP : exy => [y exprop].
+    exists x, y.
+    move/andP : exprop => [t1 fy_eq_a].
+    move/andP : t1 => [x_lt_y fx_eq_a].
+    rewrite x_lt_y.
+    rewrite size_map.
+    rewrite size_enum_ord.
+    rewrite (@nth_map _ x);
+      [ | case x as [xval xbd];
+          simpl; by rewrite size_enum_ord].
+    rewrite (@nth_map _ x _ a);  [ | case x as [xval xbd]];
+      [ | case y as [yval ybd];
+          simpl; by rewrite size_enum_ord].
+    do 2 rewrite nth_ord_enum.
+    move/eqP : fx_eq_a => -> .
+    move/eqP : fy_eq_a => -> .
+    case y as [yval ybd]; simpl.
+    rewrite ybd.
+    done.
   }
   {
-    intro H. unfold injectiveb, dinjectiveb. apply/(uniqPn ord0).
-    intro K. destruct K as [i [j [lt bd eq]]].
-    rewrite size_map size_enum_ord in bd. set j' := Ordinal bd.
-    assert (ibd : i < n) by  (apply (@leq_ltn_trans j);
-                              [ exact : ltnW |]; done).
-    set i' := Ordinal ibd.
-    pose Mp := H (f i'); unfold hitstwice in Mp; simpl in Mp.
-    refine (Bool.eq_true_false_abs _ _ Mp).
-    apply/existsP; exists i'.
-    apply/existsP; exists j'.
-    rewrite lt eq_refl; simpl.
-    rewrite (@nth_map _ i' _ ord0 f) in eq;
-      [ | rewrite size_enum_ord; exact: ibd].
-    rewrite (@nth_map _ j' _ ord0 f) in eq;
-      [ | rewrite size_enum_ord; done].
-    simpl in eq.
-    change i with (nat_of_ord i') in eq.
-    change j with (nat_of_ord j') in eq.
-    rewrite (@nth_ord_enum n i' i') in eq.
-    rewrite (@nth_ord_enum n j' j') in eq.
-    apply/eqP; by symmetry.
+    intros.
+    (* apply/card_uniqP. *)
+    (* Search card seq. *)
+    destruct m.
+    { have -> :([seq f i | i <- _] = [::]).
+      { move => ?.
+        apply empty_type_seq, card_ord.
+      }
+      done.
+    }
+    rewrite -[uniq _]negbK.
+    apply/negP.
+    rewrite -(rwP (uniqPn ord0)).
+    move => [i [j [i_lt_j j_lt_size]]].
+    rewrite size_map size_enum_ord in j_lt_size.
+    have j0 : 'I_n by exact (Sub j j_lt_size).
+    rewrite (nth_map j0 ord0 f); last first.
+    { rewrite size_enum_ord; auto with arith. }
+    rewrite (nth_map j0 ord0 f); [ | now rewrite size_enum_ord ].
+    have i_lt_n : (i < n). { auto with arith. }
+    change i with (nat_of_ord (Sub i i_lt_n)).
+    rewrite nth_ord_enum.
+    change j with (nat_of_ord (Sub j j_lt_size)).
+    rewrite nth_ord_enum.
+    set ii := (Sub i i_lt_n).
+    set jj := (Sub j j_lt_size).
+    move => A.
+    have: hitstwice f (f ii). 
+    { rewrite /hitstwice.
+      apply/existsP. exists ii.
+      apply/existsP. exists jj.
+      simpl. rewrite i_lt_j eq_refl eq_sym /=.
+      now apply/eqP.
+    }
+    rewrite H.
+    done.
   }
 Qed.
-    
+
 Definition not_injective_hitstwice_val {n m : nat} (f : 'I_(m.+1)^n)
  : 'I_m.+1.
 Proof.
@@ -252,8 +287,6 @@ Proposition factoring_preserves_surjectivity {n m : nat} (f : 'I_(m.+1)^n)
       { exists x2; [ done |]; rewrite ffunE.
         rewrite leqNgt x1ltx2 /=.
       rewrite y_eq_si; apply val_inj; simpl.
-
-
       apply ord_neq_nat_neq in y_neq_i.
       do ! ord_to_arith; apply (rwP eqP) in fx2eqi; rewrite fx2eqi;
          destruct i; done.

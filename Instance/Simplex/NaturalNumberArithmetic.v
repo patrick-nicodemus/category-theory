@@ -6,8 +6,7 @@ Require Import mathcomp.ssreflect.fintype.
 Require Import mathcomp.ssreflect.finfun.
 Require Import mathcomp.ssreflect.ssrnat.
 Require Import mathcomp.ssreflect.eqtype.
- 
-Global Create HintDb arith discriminated.
+
 Ltac leq_transleft :=
   multimatch goal with
   | [ H : is_true( ?m <= ?n ) |- is_true ( ?m <= ?p ) ] => apply (@leq_trans n _ _ H)
@@ -89,7 +88,7 @@ Proof.
   intros n m H.
   apply (elimT leP) in H.
   apply (introT leP).
-  now apply le_pred. 
+  exact: le_pred.
 Qed.
 
 Global Hint Resolve nlek_nm1lek : arith.
@@ -204,21 +203,27 @@ Qed.
 Global Hint Resolve n_leq_m_n_lt_msub1 : arith.
 Definition leB := fun n m : nat => rwP (@leP n m).
 Global Hint Resolve <- leB : arith.
-
 (*   δ_j ∘ δ_i = δ_i ∘ δ_(j-1)   ;  i < j *)
 Proposition δi_δj_nat :
   forall (i j : nat), i < j -> 
            comp (bump j) (bump i) =1 comp (bump i) (bump j.-1).
 Proof.
   intros i j ineq x; simpl.
+  
   rewrite [bump i (bump _ _)]bumpC; unfold unbump.
   have -> :(j.-1 < i = false). {
     auto with arith.
   }
-  autounfold with arith.
+  (* hammer. Z3 finds a proof but can't reconstruct it. *)
   autorewrite with arith_rewrite.
+  (* hauto use: leqNgt, ltn_geF, ltn_predK, add1n unfold: negb, bump, nat_of_bool, is_true. *)
   rewrite {4}/bump.
-  have -> :( i <= j.-1). { auto with arith. }
+  (* hauto lq: on *)
+  (*      use: leqNgt, ltn_predK, add1n *)
+  (*      unfold: negb, nat_of_bool, is_true. *)
+  have -> :( i <= j.-1). {
+    auto with arith. }
+  (* sfirstorder use: add1n, ltn_predK unfold: nat_of_bool, Nat.pred. *)
   now destruct j. 
 Qed.
 
@@ -235,25 +240,49 @@ Proposition σi_σj_nat :
   destruct (@leP (S i) x) as [i_lt_x | i_ge_x]; arith_simpl.
   {
     destruct (@leP (j.+2) x) as [j_llt_x | jrx]; arith_simpl. {
-      assert (z : i < x.-1) by
-        (apply nlek_nm1lekm1 in j_llt_x; simpl in j_llt_x;
-         eapply leq_ltn_trans; eauto); rewrite z.
+      assert (z : i < x.-1). {
+        (* time(srun (eauto) use: ltn_predRL, leq_ltn_trans, *)
+        (*     ltn_predK unfold: Nat.pred). *)
+        apply nlek_nm1lekm1 in j_llt_x; simpl in j_llt_x;
+             eapply leq_ltn_trans; eauto.
+      }
+      rewrite z.
       
       assert (z2 : (j < x.-1)) by auto with arith; rewrite z2; arith_simpl.
       done. }
     {
+      (* time(qauto use: ltn_predK, subSS, subSKn, leqNgt *)
+      (* unfold: Nat.pred, is_true, nat_of_bool, negb). *)
       rewrite -ltnNge in jrx. rewrite ltnS in jrx.
-      assert (z : j < x.-1 = false). { apply negbTE; rewrite -ltnNge.
-                                       by rewrite (ltn_predK i_lt_x). }
+      assert (z : j < x.-1 = false). {
+        (* time(hauto use: ltnNge, leq_gtF,  *)
+        (*     ltnS, ltn_predK unfold: is_true, Nat.pred, maxn). *)
+        by apply negbTE; rewrite -ltnNge; rewrite (ltn_predK i_lt_x).
+      }
       rewrite z i_lt_x; arith_simpl; done.
     }
   } 
   {
     ltnNge_in_H; rewrite ltnS in i_ge_x.
-    assert (z : j < x = false) by auto with arith; rewrite z; clear z.
-    assert (z : j.+1 < x = false) by auto 8 with arith ; rewrite z; clear z.
+    assert (z : j < x = false). {
+      (* time(srun (eauto) use: leq_gtF, leq_trans). *)
+      auto with arith.
+    }
+    rewrite z; clear z.
+    assert (u : j.+1 < x = false).
+    {
+      (* Sauto is faster by a factor of 10x *)
+      (* time(hauto lq: on use: ltnW, leq_trans, *)
+      (*           ltn_geF unfold: maxn, is_true). *)
+      auto 8 with arith ; rewrite z; clear z.
+    }
+    rewrite u. clear u.
     arith_simpl.
-    assert (z : i < x = false) by auto with arith; rewrite z; arith_simpl.
+    have -> : (i < x = false) by
+      
+      (* srun (eauto) use:leq_gtF. *)
+      (* Sauto is faster by a factor of 10x *)
+      auto with arith; rewrite z. arith_simpl.
     reflexivity.
   } 
 Qed.
@@ -280,7 +309,13 @@ Proof.
     { rewrite i_leq_x. auto with arith. }
   } 
   assert (z : (j < x) = false ) by auto with arith. rewrite z; clear z; arith_simpl.
-  have -> :((j.+1 < x) = false) by auto 8 with arith. arith_simpl.
+  
+  have -> :((j.+1 < x) = false).
+  { auto 8 with arith. }          
+    (* Four times faster. *)
+    (* time(srun (eauto) use: ltn_geF, ltnW, leq_trans unfold: minn, is_true). *)
+arith_simpl.
+  (* time(hfcrush use: addSn, leqNgt, add1n unfold: negb, nat_of_bool, is_true). *)
   resolve_boolean; done.
 Qed.
 
