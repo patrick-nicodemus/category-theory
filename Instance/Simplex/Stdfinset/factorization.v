@@ -151,8 +151,6 @@ Proof.
   }
   {
     intros.
-    (* apply/card_uniqP. *)
-    (* Search card seq. *)
     destruct m.
     { have -> :([seq f i | i <- _] = [::]).
       { move => ?.
