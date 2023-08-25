@@ -103,7 +103,6 @@ Instance/Zero.v
 Instance/Simplex/NaturalNumberArithmetic.v
 Instance/Simplex/FinType.v
 Instance/Simplex/Stdfinset.v
-Instance/Simplex/DNat.v
 Instance/Simplex/AugmentedSimplexCategory.v
 Instance/Simplex/CanonicalFactorization.v
 Instance/Simplex/MonoidalStructure.v
