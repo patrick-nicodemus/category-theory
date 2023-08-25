@@ -1,6 +1,8 @@
+From Ltac2 Require Import Ltac2.
 Require Import Category.Lib.
 Require Import Category.Theory.Category.
 Require Import Instance.Simplex.NaturalNumberArithmetic.
+Require Import stdpp.finite.
 
 From Hammer Require Import Hammer Tactics.
 Require Import Arith.
@@ -10,22 +12,10 @@ Definition ord_fn_equiv (n : nat) (f g : nat -> nat)
   := forall x, x < n -> f x = g x.
 
 Require Import ssreflect.
-Require Import ssrfun.
-Require Import ssrbool.
-
-Require Import mathcomp.ssreflect.seq.
-Set Warnings "-notation-overridden".
-Require Import mathcomp.ssreflect.ssrnat.
-Require Import mathcomp.ssreflect.eqtype.
-Require Import mathcomp.ssreflect.fintype.
-
-Require Import mathcomp.ssreflect.tuple.
-Require Import mathcomp.ssreflect.finfun.
 
 Set Primitive Projections.
 Set Universe Polymorphism.
 
-Notation "''I_' n" := (ordinal n).
 
 (** In this file we define the category whose objects are "standard finite sets" [[n] = { 0, ... n-1}] and whose morphisms are all functions between them. We define the coface and codegeneracy maps δi, σj in this category, but we do not prove they are monotonic. *)
 
@@ -50,17 +40,58 @@ We define [find_ord] and [findlast_ord] which are the expected variants of [find
 We define predicates [least_st] and [gtest_st] which say that a given element of ['I_n] is the least / greatest element satisfying a certain predicate, and use these to write specifications for [find_ord] and [findlast_ord].
 *)
 
+Definition ordinal (n : nat) := { x | x < n }.
+
 Section stdfinset.
 
   Local Open Scope type_scope.
+  
+  #[export] Instance eq_dec_ord {n : nat} : EqDecision (ordinal n).
+  Proof.
+    ltac1:(typeclasses eauto).
+  Qed.
+
+  Definition ord_incl {n m: nat} `{H : n <= m} : ordinal n -> ordinal m.
+  Proof.
+    refine '(fun a =>  match a with
+                      | exist _ x v => exist _ x _
+                      end).
+    abstract(ltac1:(sfirstorder)).
+  Defined.
+
+  Fixpoint ordlist (n m: nat) (t : rgeq n m.+1):  list (ordinal n) :=
+    match t with
+      rqeq_refl -> []
+
+  Fixpoint ordlist (n : nat) :  list (ordinal n) :=
+    match n with
+    | O => []
+    | S m => ((@ord_incl m m.+1 (Nat.le_succ_diag_r m)) <$> (ordlist m))
+               ++ [ exist  _ m (Nat.lt_succ_diag_r m) ]
+    end.
+
+
+  Proposition nodup_ordlist {n : nat} : NoDup (ordlist n).
+  Proof.
+    induction n.
+    { constructor. }
+    { Print NoDup.
+      
+      
+
+  #[export] Instance fin_ord {n : nat} : Finite (ordinal n).
+  Proof.
+    exists (ordlist n).
+    { 
+      
 
 Program Definition stdfinset : Category :=
   {|
     obj     := nat;
-    hom     := fun n m => ('I_m)^n;
+    hom     := fun n m => (ordinal m)^n;
     homset  := fun _ _ => {| equiv := eq |}; 
-    Category.id      := fun n => [ffun k => k];
-    compose := fun _ _ _ f g => [ffun x => f (g x)]
+    Category.id      := fun n => _ ;
+    compose := fun _ _ _ f g => _
   |}.
 
 (** Right identity law - The main lemma of this proof is function extensionality [ffunP]. [ffunE] simplifies [ [ffun x => t] a] to [t[x/a]]; presumably the reason this needs to be explicitly called as lemma is to prevent term explosion through unnecessary simplification. *)

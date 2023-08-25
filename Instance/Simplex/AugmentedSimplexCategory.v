@@ -2,25 +2,10 @@
 Require Import Category.Lib.
 Require Import Category.Theory.Category.
 
-Require Import Arith.
+Require Import Nat Arith.
 From Hammer Require Import Hammer Tactics.
 
 Local Open Scope nat.
-
-Require Import ssreflect.
-Require Import ssrfun.
-Require Import ssrbool.
-
-Require Import mathcomp.ssreflect.seq.
-Set Warnings "-notation-overridden".
-Require Import mathcomp.ssreflect.ssrnat.
-Require Import mathcomp.ssreflect.eqtype.
-Require Import mathcomp.ssreflect.fintype.
-Require Import mathcomp.ssreflect.finfun.
-Require Import mathcomp.ssreflect.tuple.
-
-From Hammer Require Import Hammer Tactics Reflect.
-
 Set Primitive Projections.
 Set Universe Polymorphism.
 
@@ -45,78 +30,6 @@ Set Universe Polymorphism.
 (**   $\sigma_j \circ \delta_i = \delta_{i-1} ;\; i > j+1$  *)
 
 (** which we prove in this file. References for this material include "Simplicial Objects in Algebraic Topology" by Peter May, or "Simplicial Homotopy Theory" by Goerss and Jardine. The above five equations are taken from page 1 of May's book, except that in his book they occur dualized, i.e., they are meant to be interpreted in the opposite category to our simplex category. *)
-  
-(* Open Scope nat_scope. *)
-
-Definition monotonic {n m : nat} (f : 'I_m^n) : bool :=
-  pairwise (fun i j : 'I_m => leq i j) (tuple_of_finfun f).
-
-Definition strictly_monotonic {n m : nat} (f : 'I_m^n) : bool :=
-  pairwise (fun i j : 'I_m => i < j) (tuple_of_finfun f).
-
-Definition monotonicP {n m : nat} (f : 'I_m^n)
-  : reflect (forall i j : 'I_n, i <= j -> f i <= f j) (monotonic f).
-Proof.
-  rewrite /monotonic.
-  (* There is already a logical specification of the behavior of the 
-     pairwise function in the standard library so we just have to prove 
-     our specificiation is equivalent to that one. *)
-  apply/(iffP (tuple_pairwiseP _ _ _ _)); intro H.
-  { intros i j ineq.
-    assert (k := (H i j (mem_ord_enum i) (mem_ord_enum j))).
-    (* Go by cases on the disjunction i <= j -> i = j or i < j. *)
-    (* Bookkeeping to convert between Boolean/logical disjunction. *)
-    rewrite leq_eqVlt in ineq ; move/orP : ineq; intro ineq;
-      destruct ineq as [eq | lt].
-    { (* Case i = j. *)
-      (* N. b. - Since the type bool satisfies UIP, 
-         if P : A -> bool is a predicate on A, 
-         given two elements (x,e) and (x', e') of { x : A | P x = true },
-         (x, e) = (x', e') iff x = x' because e = e' always,
-         as there is a unique proof of true = true. 
-         Thus the inclusion of a subtype into the parent type is
-         always injective. This is recorded in the lemma val_inj. *)
-      move/eqP: eq; intro eq; by rewrite (val_inj eq). }
-    assert (z := k lt).
-    rewrite 2! tnth_tuple_of_finfun in z.
-    exact: z.
-  }
-  intros i j _ _ ineq.
-  rewrite 2! tnth_tuple_of_finfun. apply: H; exact: ltnW.
-Qed.
-
-Proposition strictly_monotonicP {n m : nat} (f : 'I_m^n) :
-  reflect (forall i j : 'I_n, i < j -> f i < f j) (strictly_monotonic f).
-Proof.
-  rewrite /monotonic.
-  apply/(iffP (tuple_pairwiseP _ _ _ _)); intro H.
-  { 
-    intros i j ineq.
-    have k := (H i j (mem_ord_enum i) (mem_ord_enum j)) ineq.
-    now rewrite 2! tnth_tuple_of_finfun in k.
-  }
-  {
-   intros i j _ _ ineq.
-   rewrite 2! tnth_tuple_of_finfun. now apply: H.
-  }
-Qed.
-
-Proposition monotonic_fold_equiv (n m : nat) (f : 'I_m^n) :
-  monotonic f =
-    let fg := tuple.tval (tuple_of_finfun f) in
-    if fg is x :: xs then
-      foldr andb true (pairmap (fun i j : 'I_m => leq i j) x xs)
-    else true.
-Proof.
-  apply: pairmap_trans_pairwise; rewrite /nat_of_ord; by apply: leq_trans.
-Qed.
-
-Goal
-  forall (x : nat * nat),
-  exists y : nat * nat, (fst y) = snd x /\ (snd y) = fst x.
-Proof.
-  Abort.
-
 
 Program Definition finord : Category :=
   {|
