@@ -47,7 +47,7 @@ Ltac destruct_ord :=
                                   
 Proposition sum_of_monotonics {n n' m m' : nat}
   (f : @monotonic_fn n m) (g: @monotonic_fn n' m') :
-  monotonic (ordinal_sum_morphisms f g).
+  monotonic (ordinal_sum_morphisms (val f) (val g)).
 Proof.
   destruct f as [f fm], g as [g gm]; simpl.
   apply/monotonicP; intros i j ineq.
@@ -176,7 +176,7 @@ Ltac saturation_inequality_solver :=
   repeat(
       match goal with
       | [ H : ?x = ?x |- _ ] => clear H 
-      | [ f : monotonic_fn_sig ?n ?m, x : ordinal ?n |- _ ] =>
+      | [ f : monotonic ?n ?m, x : ordinal ?n |- _ ] =>
           saturation_define 'I_ m (f x)
       |[ H : 'I_ ?x |- _ ] => 
          saturation_assert (is_true (S H <= x)) ltac:(apply: (valP H))
@@ -223,7 +223,7 @@ Module MonoidalStructure.
     unshelve eapply (Build_Functor).
     { exact [fun nm : Δ ∏ Δ => let (n, m) := nm in n + m]. }
     { intros [n n']  [m m'] [f g]; simpl.
-      unshelve eapply (Sub (ordinal_sum_morphisms f g) _ ).
+      unshelve eapply (Sub (ordinal_sum_morphisms (val f) (val g)) _ ).
       apply: sum_of_monotonics. }
     { intros [n n'] [m m'] [f g] [h k] [eq1 eq2];
                revert n n' m m' f g h k eq1 eq2;
@@ -238,7 +238,9 @@ Module MonoidalStructure.
       msimp.
       { msimp. }
       all: msimp ; simpl in *.
-      { saturation_inequality_solver. }
+      {
+        set t := valP (val g1 j); clearbody t; saturation_inequality_solver.
+      }
       { saturation_inequality_solver. } 
       { apply/eqP; erewrite <- eqn_add2l; apply/eqP; eauto. }
     } 
@@ -336,4 +338,3 @@ Module MonoidalStructure.
     } 
 Defined.
 End MonoidalStructure.
-

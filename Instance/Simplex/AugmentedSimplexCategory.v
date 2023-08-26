@@ -1,7 +1,7 @@
 (* -*- mode: coq; mode: visual-line -*-  *)
 Require Import Category.Lib.
 Require Import Theory.Category.
-
+From HB Require Import structures.
 Require Import Category.Instance.Simplex.NaturalNumberArithmetic.
 Require Import Category.Instance.Simplex.Stdfinset.
 Require Import Category.Instance.Simplex.FinType.
@@ -118,19 +118,30 @@ Proof.
   by rewrite 2! ffunE.
 Qed.
 
-Record monotonic_fn_sig (n m : nat) :=
-  { fun_of_monotonic_fn :> 'I_m^n ;
-    _ : monotonic fun_of_monotonic_fn }.
-Arguments fun_of_monotonic_fn {n} {m} _.
+(* Record monotonic_fn_sig (n m : nat) := *)
+(*   { fun_of_monotonic_fn :> 'I_m^n ; *)
+(*     _ : monotonic fun_of_monotonic_fn }. *)
+(* Arguments fun_of_monotonic_fn {n} {m} _. *)
+
+Definition monotonic_fn n m := { x in @monotonic n m}.
+
+(* HB.instance Definition monotonic_fn n m : SubType := *)
+(*   [isSub of (@monotonic_fn_sig) for fun_of_monotonic_fn]. *)
 
 (** The following definition records monotonic_fn with the hint database for subtypes, which means that we can apply lemmas about general subtypes to monotonic functions. For example, we can "apply val_inj" to conclude that two monotonic functions are equal if the underlying (finite) functions are equal after the monotonicity property is forgotten. Monotonic functions are also equipped with a Boolean comparison function "==" automatically which is inherited from the underlying comparison function for finfuns. *)
 
-Canonical Structure monotonic_fn (n m : nat) :=
-  [subType for (@fun_of_monotonic_fn n m) ].
+(* Print isSub. *)
+(* HB.instance Definition monotonic_fn := *)
+(*   [isSub of monotonic_fn_sig for fun_of_monotonic_fn]. *)
+
+(* HB.instance Definition _ := [isSub of ordinal for nat_of_ord]. *)
+
+(* Canonical Structure monotonic_fn (n m : nat) := *)
+(*   [subType for (@fun_of_monotonic_fn n m) ]. *)
 Definition monotonic_fn_eqMixin (n m : nat) :=
-  [eqMixin of (monotonic_fn n m) by <:].
-Canonical Structure monotonic_fn_eqType (n m : nat) :=
-  EqType (monotonic_fn n m) (monotonic_fn_eqMixin n m).
+  [Equality of (monotonic_fn n m) by <:].
+(* Canonical Structure monotonic_fn_eqType (n m : nat) := *)
+(*   EqType (monotonic_fn n m) (monotonic_fn_eqMixin n m). *)
 
 Definition comp {aT : finType} {rT sT : Type} (f : {ffun aT -> rT})
   (g : rT -> sT) 
@@ -148,7 +159,7 @@ Definition comp_mon (n m k : nat) (g : @monotonic_fn m k)
   (f : @monotonic_fn n m)
   :  @monotonic_fn n k.
 Proof.
-  exists (comp (fun_of_monotonic_fn f) (fun_of_monotonic_fn g)).
+  exists (comp (val f) (val g)).
   apply/monotonicP.
   intros i j ineq; simpl.
   rewrite 2! ffunE.
@@ -159,7 +170,6 @@ Defined.
 
 Definition id_mon (n : nat) : @monotonic_fn n n :=
   Sub (finfun (@id 'I_n)) (idmap_monotonic n).
-
 
 Program Definition finord : Category :=
   {|
@@ -263,7 +273,7 @@ Ltac simplex_simpl :=
   do ! (match goal with
         | [ |- @eq (@hom finord _ _) _ _ ]  => apply: val_inj; simpl
         | [ |- @eq (ordinal _) _ _] => apply: val_inj; simpl
-        | [ |- @eq (monotonic_fn_sig _ _) _ _] => apply:val_inj; simpl
+        | [ |- @eq (Sub _ _) _ _] => apply:val_inj; simpl
         | [ |- context[AugmentedSimplexCategory.comp _ _]] =>
             fail_if_unchanged ltac:(unfold AugmentedSimplexCategory.comp)
         | [ |- eqfun _ _ ] => unfold eqfun
@@ -341,7 +351,10 @@ Proposition δi_σj_i_gt_Sj {n : nat}
       @compose finord n.+2 n.+1 n.+2 (δ (ord_predn i)) (σ j).
 Proof. 
   intros [ival ibd] [jval jbd]; simpl; intro ineq.
-  simplex_simpl; intros [xval xbd].
+  apply val_inj => /=.
+  rewrite /comp.
+  simplex_simpl.
+  intros [xval xbd].
   simplex_simpl.
   exact: δi_σj_i_gt_Sj_nat.
 Qed.
@@ -360,7 +373,7 @@ Definition rwP_injectiveP (A B : finType) (f : A -> B)
 #[export] Hint Rewrite <- leB : brefl.
 
 Lemma surj_preserves_top (n m: nat) (f : n.+1 ~{ Δ }~> m.+1)
-  (p : surjective f) : f ord_max = ord_max.
+  (p : @surjective ('I_(n.+1)) ('I_m.+1) (val f)) : (val f) ord_max = ord_max.
 Proof.
   move: p.
   breflect.
@@ -377,21 +390,17 @@ Proof.
   apply val_inj.
   apply/eqP.
   now rewrite
-    eqn_leq
-    -{2}pf
-    ((snd (rwP (monotonicP (val f)))) (valP f) _ _ t)
-    /=
-    -ltnS
-       (valP (f ord_max)).
+    eqn_leq -{2}pf ((snd (rwP (monotonicP (val f)))) (valP f) _ _ t) /= -ltnS andbT
+   (valP ((val f) ord_max)).
 Qed.
 
 Lemma injectiveb_strictly_monotonic (n m : nat) (f : n ~{ Δ }~> m)
-  : injectiveb f = strictly_monotonic f.
+  : injectiveb (val f) = strictly_monotonic (val f).
 Proof.
   rewrite -iff_equiv -(rwP (injectiveP _)) -(rwP (strictly_monotonicP _)).
   split.
   { move => a i j ineq.
-    have: (f i <= f j). {
+    have: ((val f) i <= (val f) j). {
       apply ltnW in ineq.
       have k:= (valP f).
       rewrite -(rwP (monotonicP _)) in k.
@@ -426,7 +435,7 @@ Proof.
 Qed.
 
 Lemma injective_increasing (n m : nat) (f : n ~{ Δ }~> m) 
-  : (injectiveb f) -> [forall x : 'I_n, x <= f x].
+  : (injectiveb (val f)) -> [forall x : 'I_n, x <= (val f) x].
 Proof.
   move => j.
   apply/forallP.
@@ -435,7 +444,7 @@ Proof.
   { done. }
   { have mon := valP f.
     rewrite injectiveb_strictly_monotonic in j.
-    rewrite -(rwP (strictly_monotonicP f)) in j.
+    rewrite -(rwP (strictly_monotonicP (val f))) in j.
     have xbd0 : (xval < n). {
       auto with arith.
     }
@@ -444,23 +453,23 @@ Proof.
     have tm : x < S x by (auto with arith).
     have jxSxtm := j x Sx tm.
     specialize IHxval with xbd0.
-    now apply: (@leq_ltn_trans (f x)).
+    now apply: (@leq_ltn_trans (val f x)).
   } 
 Qed.
   
 Lemma surjective_decreasing (n m : nat) (f : n ~{ Δ }~> m) 
-  : (surjective f) -> [forall x : 'I_n, x >= f x].
+  : (surjective (val f)) -> [forall x : 'I_n, x >= (val f) x].
 Proof.
   move => j.
   apply/forallP.
   case => xval xbd /=.
   (* Case m = 0 is trivial. *)
-  destruct m; [ destruct (f (Ordinal xbd)); auto with arith |].
+  destruct m; [ destruct ((val f) (Ordinal xbd)); auto with arith |].
   (* mon  = f is monotonic. *)
-  have mon := (snd (rwP (monotonicP f))) (valP f).
+  have mon := (snd (rwP (monotonicP (val f)))) (valP f).
   (* g is a section of f. p states that g is a section of f. *)
-  have p := surjection_splitting_spec f j.
-  set g := surjection_splitting f j in p; clearbody g.
+  have p := surjection_splitting_spec (val f) j.
+  set g := surjection_splitting (val f) j in p; clearbody g.
   rewrite -(rwP (splitsP _ _)) /splits_spec in p.
 
   induction xval.
@@ -478,9 +487,9 @@ Proof.
     (* Want to show f(x.+1) <= x.+1. *)
     have xbd0 : xval < n by auto with arith.
     (* We prove that f(x.+1) <= f(x).+1 <= x.+1. *)
-    apply: (@leq_trans (f (Ordinal xbd0)).+1 ).
+    apply: (@leq_trans ((val f) (Ordinal xbd0)).+1 ).
     { (* First, f(x.+1) <= f(x).+1. *)
-      have fx_lt_n := valP (f (Ordinal xbd0)).
+      have fx_lt_n := valP ((val f) (Ordinal xbd0)).
       rewrite ltnS leq_eqVlt in fx_lt_n.
       (* We break into cases depending on whether f(x)=m 
          or f(x) < m. *)      
@@ -491,7 +500,7 @@ Proof.
            So f(x.+1) < f(x).+1, thus a fortiori f(x.+1) <= f(x).+1. *)
         move/eqP => eq_n.
         rewrite eq_n.
-        have t := valP (f (Ordinal xbd)).
+        have t := valP ((val f) (Ordinal xbd)).
         auto with arith.
       } 
       {
@@ -509,19 +518,21 @@ Proof.
         move => xbd'.
         rewrite -ltnS in xbd'.
         set y := Ordinal xbd'.
-        change (f (Ordinal xbd) <= _ .+1) with
-          (f (Ordinal xbd) <= val y).
+        change ((val f) (Ordinal xbd) <= _ .+1) with
+          ((val f) (Ordinal xbd) <= val y).
         cut (is_true (xval.+1 <= g y)). {
           move => a.
           have tm := mon (Ordinal xbd) (g y) a.
+          change (\val f _).+1 with (\val y).
           now rewrite -(p y).
         }
         rewrite ltnNge.
         apply/negP => t.
-        cut (is_true ((f (Ordinal xbd0)).+1 <= f (Ordinal xbd0))). {
+        cut (is_true (((val f) (Ordinal xbd0)).+1 <=
+                        (val f) (Ordinal xbd0))). {
           now rewrite ltnn.
         }
-        change ((f (Ordinal xbd0)).+1) with (val y).
+        change (((val f) (Ordinal xbd0)).+1) with (val y).
         rewrite -(p y).
         apply: mon.
         exact: t.
@@ -533,8 +544,9 @@ Proof.
 Qed.
 
 Lemma identity_unique_surjection (n : nat) (f : n ~{ Δ }~> n)
-  (p : surjective f)
-  : Build_monotonic_fn_sig n n [ffun x => x] (idmap_monotonic n) = f.
+  (p : surjective (val f))
+  : Sub [ffun x => x] (idmap_monotonic n) = f.
+  (* : Build_monotonic_fn_sig n n [ffun x => x] (idmap_monotonic n) = f. *)
 Proof.
   apply: val_inj => /=.
   apply/ffunP => x.
@@ -557,8 +569,8 @@ Qed.
 (** The degeneracy factoring map constructed in stdfinset sends monotonic maps to monotonic maps. *)
 
 Proposition degenerate_factor_monotonic {n m : nat} (f : n ~{ Δ }~> m.+1)
-  (i : 'I_m.+1) ( p: hitstwice f i )
-  : monotonic (degeneracy_factoring_map f i p).
+  (i : 'I_m.+1) ( p: hitstwice (val f) i )
+  : monotonic (degeneracy_factoring_map (val f) i p).
 Proof.
   rewrite -(rwP (monotonicP _)).
   move => x y x_le_y.
@@ -567,23 +579,23 @@ Proof.
   destruct j as [j lj].
   do 2 rewrite ffunE.
   have t : (y <= j) || (y > j) by rewrite leqNgt orNb.
-  have mon := (snd (rwP (monotonicP f)) (valP f) x y x_le_y).
+  have mon := (snd (rwP (monotonicP (val f))) (valP f) x y x_le_y).
   case/orP: t => ineq.
   {
     have -> : x <= j by exact: (leq_trans x_le_y ineq).
     rewrite ineq; do 2 rewrite andTb.
     
-    set fy_eq_i := f y == i.
-    set fx_eq_i := f x == i.
+    set fy_eq_i := (val f) y == i.
+    set fx_eq_i := (val f) x == i.
     destruct (@idP fy_eq_i) as [y_eq | y_diseq];
     destruct (@idP fx_eq_i) as [x_eq | x_diseq ].
     { done. }
     { simpl.
       unfold bump.
-      have -> : (i <= f x) = false. {
+      have -> : (i <= (val f) x) = false. {
         apply negbTE.
         rewrite -ltnNge ltn_neqAle.
-        have -> : (f x <=i) by now move/eqP: y_eq => <-.
+        have -> : ((val f) x <=i) by now move/eqP: y_eq => <-.
         rewrite andbT.
         rewrite negE.
         exact: x_diseq.
@@ -594,7 +606,7 @@ Proof.
     {
       (* Case: f x = i, f y > i *)
       simpl; unfold bump.
-      cut (is_true (i <= f y)). {
+      cut (is_true (i <= (val f) y)). {
         move => a.
         rewrite a add1n.
         exact: (leq_trans a).
@@ -611,9 +623,9 @@ Proof.
     rewrite [y  <= j]leqNgt .
     rewrite ineq /=.
     unfold bump.
-    have t1 : (i <= f y). {
+    have t1 : (i <= (val f) y). {
       apply ltnW in ineq.
-      apply (snd (rwP (monotonicP f)) (valP f) j y) in ineq.
+      apply (snd (rwP (monotonicP (val f))) (valP f) j y) in ineq.
       rewrite -(rwP existsP) in lj; case: lj => [j' a].
       do 2 rewrite -(rwP andP) in a.
       case: a => [[j_lt_j' fj_eq_i] fjp_eq_i].
@@ -623,18 +635,18 @@ Proof.
     destruct (@leP x j) as [x_le_j | x_gt_j].
     {
       rewrite /=.
-      set fx_eq_i := (f x == i).
+      set fx_eq_i := ((val f) x == i).
       destruct fx_eq_i.
       { exact: (leq_trans t1). }
       { simpl. unfold bump.
-        set abc := (i <= f x). destruct abc.
+        set abc := (i <= (val f) x). destruct abc.
         { auto. }
         { rewrite add0n. exact: (leq_trans mon). }
       }
     }
     simpl.
     unfold bump.
-    set abc := (i <= f x). destruct abc.
+    set abc := (i <= (val f) x). destruct abc.
         { auto. }
         { rewrite add0n. exact: (leq_trans mon). }
   }
@@ -643,8 +655,8 @@ Qed.
 
 Proposition face_factor_monotonic
    {n m : nat} (f : n ~{ Δ }~> m.+1)
-  (i : 'I_m.+1) (p : i \notin (image f 'I_n))
-      : monotonic (facemap_factoring_map f i p).
+  (i : 'I_m.+1) (p : i \notin (image (val f) 'I_n))
+      : monotonic (facemap_factoring_map (val f) i p).
 Proof.
   have mon := valP f.
   rewrite -(rwP (monotonicP _)) in mon.
@@ -653,7 +665,7 @@ Proof.
   unfold facemap_factoring_map; do 2 rewrite ffunE /=.
   rewrite -leq_bump unbumpKcond.
   set k := (a in _ <= a + _).
-  refine (@leq_trans (f y) _ _ x_le_y _).
+  refine (@leq_trans ((val f) y) _ _ x_le_y _).
   auto with arith.
 Qed.
 

@@ -355,7 +355,8 @@ Proof.
 Qed.
 
 Open Scope nat_scope.
-Definition nat_eqP_hint := fun n m : nat => (rwP (@eqP nat_eqType n m)).
+
+Definition nat_eqP_hint := fun n m : nat => (rwP (@eqP nat n m)).
 Global Hint Resolve -> nat_eqP_hint : arith.
 
 Lemma σ_i_eq_i_nat ( i x : nat ) :

@@ -92,7 +92,10 @@ Proof.
   rewrite unbumpKcond.
   set z:= ( _ == _ ); cut (z = false);
           [ intro RW; by rewrite RW |]; unfold z; clear z.
-  apply (introF (eqP)); intro eq; apply val_inj in eq.
+  apply (introF (eqP)); intro eq.
+  change (nat_of_ord (f x)) with (val (f x)) in eq;
+    change (nat_of_ord i) with (val i) in eq.
+  apply val_inj in eq.
   apply (rwP negP) in p; apply p; rewrite -eq.
   exact: image_f.
 Qed.
@@ -286,8 +289,7 @@ Proposition factoring_preserves_surjectivity {n m : nat} (f : 'I_(m.+1)^n)
         rewrite leqNgt x1ltx2 /=.
       rewrite y_eq_si; apply val_inj; simpl.
       apply ord_neq_nat_neq in y_neq_i.
-      do ! ord_to_arith; apply (rwP eqP) in fx2eqi; rewrite fx2eqi;
-         destruct i; done.
+      apply (rwP eqP) in fx2eqi; now rewrite fx2eqi.
     }
     { apply (rwP (surjectiveP f)) in issurj.
       destruct (issurj (σ i y)) as [x fx_eq_y].
@@ -330,7 +332,7 @@ Proposition factoring_preserves_surjectivity {n m : nat} (f : 'I_(m.+1)^n)
         rewrite fx_eq_y; unfold σ; rewrite ffunE; simpl.
       rewrite unbumpKcond.
       set s := ( _ == _ ); assert (RW : s = false). {
-        unfold s. ord_to_arith.
+        unfold s. 
         apply (introF eqP). 
         destruct i;
           apply ord_neq_nat_neq in y_neq_i; simpl in y_neq_i.

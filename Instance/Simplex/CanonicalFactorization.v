@@ -23,8 +23,6 @@ Require Import mathcomp.ssreflect.eqtype.
 Require Import mathcomp.ssreflect.fintype.
 Require Import mathcomp.ssreflect.finfun.
 
-From Hammer Require Import Hammer Reflect Tactics.
-
 Open Scope nat_scope.
 Notation "''I_' n" := (ordinal n).
 
@@ -313,8 +311,8 @@ End FreelyGenerated.
   (** The theorem is only true for f monotonic so when proving this kind of theorem about the factorization algorithm one should only work with objects in the simplex category. *)
 
   Proposition factorization_surj_spec (n m : nat) 
-    (f : @hom finord n m) (p : surjective f)
-    : fmap[evaluationFunctor] (factorization_surj_finset f p) = f.
+    (f : @hom finord n m) (p : surjective (val f))
+    : fmap[evaluationFunctor] (factorization_surj_finset (val f) p) = f.
   Proof.
     unfold factorization_surj_finset.
     set z := (factorization_surj_finset_subproof _ _ _ _).
@@ -323,16 +321,16 @@ End FreelyGenerated.
     destruct m; [
       destruct n;
         [ discriminate (rgeq_implies_leq _ _ z)
-        | discriminate (valP (f ord0))]  |].
+        | discriminate (valP ((val f) ord0))]  |].
 
     rewrite factorization_surj_finset_rewrite.
     cbn zeta.
     unfold evaluationFunctor, InducedFunctor, fmap.
     rewrite (@InducedFunctor_Rewrite_rcons _ _ sd_quiverhom).
-    set r := rleq_nm_notinj f z.
-    set ht := not_injective_hitstwice_spec f r.
-    set i := not_injective_hitstwice_val f in ht *.
-    have fps := factoring_preserves_surjectivity f i ht p.
+    set r := rleq_nm_notinj (val f) z.
+    set ht := not_injective_hitstwice_spec (\val f) r.
+    set i := not_injective_hitstwice_val (\val f) in ht *.
+    have fps := factoring_preserves_surjectivity (\val f) i ht p.
     set g := (degeneracy_factoring_map _ _ _) in fps *.
     set g0 : (@hom finord n m.+2) :=
       @Sub {ffun 'I_n -> 'I_m.+2} monotonic
@@ -343,7 +341,7 @@ End FreelyGenerated.
     unfold AugmentedSimplexCategory.comp.
     apply ffunP => x.
     rewrite ffunE ffunE.
-    rewrite (degeneracy_factoring_map_eq f i).
+    rewrite (degeneracy_factoring_map_eq (\val f) i).
     apply val_inj => /=.
     rewrite [in a in _ = a]ffunE.
     unfold σ_stdfinset.
@@ -381,7 +379,7 @@ End FreelyGenerated.
         | destruct (f (@ord0 n')); auto with arith] | ].
     destruct (@idP (surjective f)) as [surj |not_surj];
       [ exact: (factorization_surj_finset f surj) |].
-    set P := fun y : ordinal_finType m.+1 =>
+    set P := fun y : ordinal m.+1 =>
                y \notin [seq f x | x : exp_finIndexType n].
     unshelve refine (let t := (gtest_st_spec P _) in _ ).
     {   abstract(move/negP: not_surj => not_surj;
@@ -392,13 +390,13 @@ End FreelyGenerated.
   Defined.    
 
   Proposition factorization_spec {n m :nat} (f : n ~{ Δ }~> m) :
-    fmap[evaluationFunctor] (factorization f) = f.
+    fmap[evaluationFunctor] (factorization (val f)) = f.
   Proof.
     induction m.
     { destruct n.
       { apply: val_inj; rewrite -ffunP /=.
         move => [xval xbd]; discriminate xbd. }
-      destruct (f ord0) as [? ybd]; discriminate ybd. }
+      destruct ((val f) ord0) as [? ybd]; discriminate ybd. }
     unfold factorization.
     (* set j := [eta _ ]; clearbody j. *)
     simpl nat_rect.
@@ -406,13 +404,13 @@ End FreelyGenerated.
       [ exact: factorization_surj_spec |]. 
     rewrite (@InducedFunctor_Rewrite_rcons _ _ sd_quiverhom).
     rewrite δf_mapsto_δ.
-    set g0 := facemap_factoring_map f _ _ .
-    set P := (fun y => y \notin [seq f x | x in 'I_n]) in g0 *.
+    set g0 := facemap_factoring_map (val f) _ _ .
+    set P := (fun y => y \notin [seq (val f) x | x in 'I_n]) in g0 *.
     set pf : has P (enum 'I_m.+1)
       := (a in findlast_ord _ a) in g0 *.
     set gs := (gtest_st_spec P _) in g0 *.
     set i := (findlast_ord _ _) in gs g0 *.
-    set pf0 := (pf in facemap_factoring_map f i pf) in g0 *.
+    set pf0 := (pf in facemap_factoring_map (val f) i pf) in g0 *.
     set g : @hom finord n m
       := Sub g0 (face_factor_monotonic f i pf0).
     rewrite (IHm g).
@@ -1298,5 +1296,3 @@ We define a sorting algorithm [sort_no_obj] on [seq sd_no_obj].
   (*   | tnil => true *)
   (*   | tcons _ _ e f => sorted_helper' f _ e *)
   (*   end. *)
-
-  

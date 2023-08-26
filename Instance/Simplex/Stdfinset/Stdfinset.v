@@ -87,17 +87,18 @@ Proof.
 Qed.
 
 (* Reduce hypotheses/goals on ordinal arithmetic to goals on natural_number arithmetic *)
-Ltac ord_to_arith :=
-match goal with
-| [ |- context[ @eq_op (Finite.eqType (exp_finIndexType _)) ?X ?Y ]] =>
-    rewrite - (inj_eq val_inj X Y)
-| [ H : is_true (@eq_op (ordinal_eqType _ ) ?X ?Y) |- _ ] =>
-    rewrite -(@inj_eq _ _ val val_inj) in H
-| [ H : not (@eq (Equality.sort (Finite.eqType (ordinal_finType _))) _ _ ) |- _]
-    => apply ord_neq_nat_neq in H
-end.
 
-Local Hint Extern 1 => ord_to_arith : arith.
+(* Ltac ord_to_arith := *)
+(* match goal with *)
+(* | [ |- context[ @eq_op (Finite.eqType (exp_finIndexType _)) ?X ?Y ]] => *)
+(*     rewrite - (inj_eq val_inj X Y) *)
+(* | [ H : is_true (@eq_op (ordinal_eqType _ ) ?X ?Y) |- _ ] => *)
+(*     rewrite -(@inj_eq _ _ val val_inj) in H *)
+(* | [ H : not (@eq (Equality.sort (Finite.eqType (ordinal_finType _))) _ _ ) |- _] *)
+(*     => apply ord_neq_nat_neq in H *)
+(* end. *)
+
+(* Local Hint Extern 1 => ord_to_arith : arith. *)
 
 Proposition surjective_card {n m : nat} (f : 'I_m^n) (p : surjective f)
   : m <= n.
