@@ -214,7 +214,7 @@ Proof.
   induction n.
   { constructor. }
   { constructor. apply rgeq_SS. assumption. }
-Qed.
+Defined.
 
 (* PeanoNat.Nat.leb_refl: ∀ x : nat, (x <=? x) = true *)
                                                 

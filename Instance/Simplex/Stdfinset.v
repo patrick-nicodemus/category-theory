@@ -2,7 +2,7 @@ From Ltac2 Require Import Ltac2.
 Require Import Category.Lib.
 Require Import Category.Theory.Category.
 Require Import Instance.Simplex.NaturalNumberArithmetic.
-Require Import stdpp.finite.
+Require Import stdpp.finite stdpp.vector.
 
 From Hammer Require Import Hammer Tactics.
 Require Import Arith.
@@ -59,53 +59,107 @@ Section stdfinset.
     abstract(ltac1:(sfirstorder)).
   Defined.
 
-  Fixpoint ordlist (n m: nat) (t : rgeq n m.+1):  list (ordinal n) :=
-    match t with
-      rqeq_refl -> []
+  (* Fixpoint ordlist' (n m: nat) (t : rgeq n m):  list (ordinal n) := *)
+  (*   match t with *)
+  (*   | rgeq_refl _ => [] *)
+  (*   | rgeq_succ _ k t' => *)
+  (*       (exist _ k (rgeq_implies_lgeq _ _ t') ) :: ordlist' _ k.+1 t' *)
+  (*   end. *)
 
-  Fixpoint ordlist (n : nat) :  list (ordinal n) :=
-    match n with
-    | O => []
-    | S m => ((@ord_incl m m.+1 (Nat.le_succ_diag_r m)) <$> (ordlist m))
-               ++ [ exist  _ m (Nat.lt_succ_diag_r m) ]
-    end.
+  (* Definition ordlist (n : nat) := ordlist' n 0 rgeq_n_0. *)
+
+  Definition ordlist (n: nat) := list_filter_sig (fun x => x < n) (seq 0 n).
 
 
   Proposition nodup_ordlist {n : nat} : NoDup (ordlist n).
   Proof.
-    induction n.
-    { constructor. }
-    { Print NoDup.
-      
-      
-
+    apply (NoDup_fmap_1 proj1_sig).
+    unfold ordlist.
+    rewrite list_filter_sig_filter.
+    apply NoDup_filter.
+    exact (NoDup_seq _ _).
+  Defined.
+  
   #[export] Instance fin_ord {n : nat} : Finite (ordinal n).
   Proof.
     exists (ordlist n).
-    { 
-      
+    { exact nodup_ordlist. }
+    { intros [xval xbd].
+      unfold ordlist.
+      apply (elem_of_list_fmap_2_inj proj1_sig); simpl.
+      rewrite list_filter_sig_filter.
+      apply elem_of_list_filter.
+      split. { assumption. } { apply elem_of_seq. auto with arith. }
+    } 
+  Defined.
 
+  (* Locate equiv. *)
+  (* Search list. *)
+  (* Print Coq.Logic.FinFun. *)
+  (* Search list. *)
+  (* Search vec. *)
+  (* Print Vector.t.
+   *)
+  Print stdpp.vector.
+  Locate fin.
+
+  Definition vector_composition {n m k : nat}
+    (f : vec (fin m) n) (g : vec (fin k) m) : vec (fin k) n
+    := (fun_to_vec (fun x : fin n => (g !!! (f !!! x)))).
+
+  Definition vector_id (n : nat) : vec (fin n) n := fun_to_vec (fun x => x).
+  
 Program Definition stdfinset : Category :=
   {|
     obj     := nat;
-    hom     := fun n m => (ordinal m)^n;
-    homset  := fun _ _ => {| equiv := eq |}; 
-    Category.id      := fun n => _ ;
-    compose := fun _ _ _ f g => _
+    hom     := fun n m => vec (fin m) n;
+    homset  := fun _ _ => {| Setoid.equiv := eq |}; 
+    Category.id      := fun n => vector_id n ;
+    Category.compose := fun _ _ _ f g => vector_composition g f
   |}.
 
 (** Right identity law - The main lemma of this proof is function extensionality [ffunP]. [ffunE] simplifies [ [ffun x => t] a] to [t[x/a]]; presumably the reason this needs to be explicitly called as lemma is to prevent term explosion through unnecessary simplification. *)
-Next Obligation. apply/ffunP; intro i; rewrite ! ffunE; done. Qed.
+Next Obligation.
+  intros n m f; simpl in f; simpl.
+  apply vec_eq. intro i.
+  unfold vector_composition.
+  simpl.
+  rewrite lookup_fun_to_vec.
+  unfold vector_id.
+  rewrite lookup_fun_to_vec.
+  reflexivity.
+Qed.
 (* Left identity law, same proof as before *)
-Next Obligation. apply/ffunP; intro i; rewrite ! ffunE; done. Qed.
+Next Obligation.
+  simpl.
+  intros n m f.
+  unfold vector_composition, vector_id.
+  apply vec_eq; intro i;
+    now rewrite 2 lookup_fun_to_vec.
+Qed.
 (* Associativity of composition law, same proof as before *)
-Next Obligation. apply/ffunP; intro i; rewrite ! ffunE; done. Qed.
+Next Obligation.
+  simpl.
+  intros a b c d f g h.
+  apply vec_eq; intro i.
+  unfold vector_composition.
+  now rewrite 4 lookup_fun_to_vec.
+Qed.
 (* Associativity of composition law, same proof as before *)
-Next Obligation. apply/ffunP; intro i; rewrite ! ffunE; done. Qed.
+Next Obligation.
+  simpl.
+  intros a b c d f g h.
+  apply vec_eq; intro i.
+  unfold vector_composition.
+  now rewrite 4 lookup_fun_to_vec.
+Qed.
+
 Open Scope nat_scope.
 
-Definition δ_stdfinset {n : nat} (i : 'I_(n.+1))
-  : @hom stdfinset n n.+1 := [ffun j : 'I_n => lift i j].
+Definition δ_stdfinset {n : nat} (i : fin n.+1)
+  : @hom stdfinset n n.+1.
+  
+  := [ffun j : 'I_n => lift i j].
 
 Lemma σ_subproof (n : nat) (i : 'I_(n.+1)) (j : 'I_(n.+2))
   : unbump i j < n.+1.
